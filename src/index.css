@@ -1,0 +1,98 @@
+/* ── Tailwind directives ── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Global base styles ── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-brand-950 text-slate-100 font-sans antialiased;
+  }
+
+  /* Remove default list styling globally */
+  ul, ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+/* ── Reusable component classes ── */
+@layer components {
+  /* Primary gradient button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-gradient-to-r from-brand-500 to-accent-500
+           text-white font-semibold px-6 py-3 rounded-xl
+           shadow-lg shadow-brand-500/30
+           transition-all duration-300
+           hover:scale-105 hover:shadow-brand-500/50
+           focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-brand-950
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  /* Secondary outline button */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           border border-brand-400/50 text-brand-300 font-semibold px-6 py-3 rounded-xl
+           transition-all duration-300
+           hover:bg-brand-800/50 hover:border-brand-400
+           focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-brand-950;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-1
+           bg-red-600/20 border border-red-500/50 text-red-400 font-medium px-3 py-1.5 rounded-lg text-sm
+           transition-all duration-200
+           hover:bg-red-600/40 hover:border-red-400
+           focus:outline-none;
+  }
+
+  /* Glass card */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  /* Form input */
+  .form-input {
+    @apply w-full bg-brand-900/60 border border-brand-700/50 text-slate-100 rounded-xl px-4 py-3
+           placeholder:text-slate-500
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
+           transition-all duration-200;
+  }
+
+  /* Section container */
+  .section-container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Section heading */
+  .section-title {
+    @apply font-display text-3xl sm:text-4xl font-bold text-white;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-300 via-accent-400 to-brand-400 bg-clip-text text-transparent;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1e1b4b;
+}
+::-webkit-scrollbar-thumb {
+  background: #4338ca;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+}
