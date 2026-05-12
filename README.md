@@ -1,4 +1,4 @@
-# InnovateFest 2025
+# InnovateFest 2026
 
 A complete, production-ready hackathon registration portal with a public-facing landing page, a secure registration flow, and a protected admin dashboard.
 

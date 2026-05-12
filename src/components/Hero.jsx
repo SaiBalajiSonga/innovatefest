@@ -37,14 +37,14 @@ export default function Hero() {
         {/* Event badge */}
         <div className="inline-flex items-center gap-2 bg-brand-800/60 border border-brand-600/40 text-brand-300 text-sm font-medium px-4 py-1.5 rounded-full mb-8 backdrop-blur-sm">
           <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          Registrations Open — May 2025
+          Registrations Open — May 2026
         </div>
 
         {/* Main headline */}
         <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-tight mb-6">
           <span className="gradient-text">InnovateFest</span>
           <br />
-          <span className="text-white text-4xl sm:text-5xl md:text-6xl font-bold">2025</span>
+          <span className="text-white text-4xl sm:text-5xl md:text-6xl font-bold">2026</span>
         </h1>
 
         {/* Sub-headline */}

@@ -29,10 +29,10 @@ export default function Register() {
         {/* Heading */}
         <div className="mb-8">
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">
-            Register for <span className="gradient-text">InnovateFest 2025</span>
+            Register for <span className="gradient-text">InnovateFest 2026</span>
           </h1>
           <p className="text-slate-400">
-            Fill in your details below. Registrations close on <strong className="text-slate-300">May 20, 2025</strong>.
+            Fill in your details below. Registrations close on <strong className="text-slate-300">May 20, 2026</strong>.
           </p>
         </div>
 
