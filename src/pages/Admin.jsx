@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabaseClient'
-import useAuth from '../hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import AdminTable from '../components/AdminTable'
 
 export default function Admin() {
