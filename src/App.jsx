@@ -15,6 +15,7 @@ import Landing    from './pages/Landing'
 import Register   from './pages/Register'
 import AdminLogin from './pages/AdminLogin'
 import Admin      from './pages/Admin'
+import NotFound   from './pages/NotFound'
 
 export default function App() {
   return (
@@ -45,8 +46,8 @@ export default function App() {
         <Route path="/register"      element={<Register />}   />
         <Route path="/admin/login"   element={<AdminLogin />} />
         <Route path="/admin"         element={<Admin />}      />
-        {/* Catch-all: redirect unknown routes to home */}
-        <Route path="*"              element={<Landing />}    />
+        {/* Catch-all: show 404 page for unknown routes */}
+        <Route path="*"              element={<NotFound />}   />
       </Routes>
     </BrowserRouter>
   )
