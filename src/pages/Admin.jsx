@@ -42,6 +42,7 @@ export default function Admin() {
         .from('registrations')
         .select('*')
         .order('submitted_at', { ascending: false })
+        .limit(500)
 
       if (error) throw error
       setRegistrations(data || [])
