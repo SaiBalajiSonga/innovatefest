@@ -5,6 +5,7 @@
  * WHY separate section components: keeps this file concise and
  * allows each section to manage its own state/animations independently.
  */
+import Navbar   from '../components/Navbar'
 import Hero     from '../components/Hero'
 import About    from '../components/About'
 import Timeline from '../components/Timeline'
@@ -14,6 +15,7 @@ import Footer   from '../components/Footer'
 export default function Landing() {
   return (
     <main className="min-h-screen bg-brand-950 overflow-x-hidden">
+      <Navbar />
       <Hero />
       <About />
       <Timeline />
