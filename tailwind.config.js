@@ -1,33 +1,35 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  // Scan all JS/JSX files inside src + the root index.html for class names
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
-      // Custom color palette: deep indigo / violet gradient system
       colors: {
-        brand: {
-          50:  '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+        surface: {
+          DEFAULT: '#0A0A0F',   // near-black page bg
+          1: '#111118',          // card bg
+          2: '#18181f',          // elevated card
+          3: '#1f1f2a',          // input bg
+          border: '#2a2a38',     // subtle borders
+        },
+        primary: {
+          DEFAULT: '#6366f1',    // indigo
+          dim: '#4f46e5',
+          glow: 'rgba(99,102,241,0.15)',
         },
         accent: {
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
+          DEFAULT: '#8b5cf6',    // violet
+          glow: 'rgba(139,92,246,0.12)',
+        },
+        text: {
+          primary: '#f4f4f5',
+          secondary: '#a1a1aa',
+          muted: '#52525b',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Outfit', 'Inter', 'sans-serif'],
+        display: ['Cal Sans', 'Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-out forwards',

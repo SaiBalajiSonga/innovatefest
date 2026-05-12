@@ -1,98 +1,76 @@
-/* ── Tailwind directives ── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Global base styles ── */
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-
-  body {
-    @apply bg-brand-950 text-slate-100 font-sans antialiased;
-  }
-
-  /* Remove default list styling globally */
-  ul, ol {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
+  html { scroll-behavior: smooth; }
+  body { @apply bg-surface text-text-primary font-sans antialiased; }
+  ul, ol { list-style: none; padding: 0; margin: 0; }
 }
 
-/* ── Reusable component classes ── */
 @layer components {
-  /* Primary gradient button */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2
-           bg-gradient-to-r from-brand-500 to-accent-500
-           text-white font-semibold px-6 py-3 rounded-xl
-           shadow-lg shadow-brand-500/30
-           transition-all duration-300
-           hover:scale-105 hover:shadow-brand-500/50
-           focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-brand-950
-           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+           bg-primary text-white font-medium text-sm px-5 py-2.5 rounded-lg
+           border border-white/10
+           shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]
+           transition-all duration-200
+           hover:bg-primary-dim hover:shadow-[0_0_20px_rgba(99,102,241,0.35)]
+           focus:outline-none focus:ring-2 focus:ring-primary/50
+           disabled:opacity-40 disabled:cursor-not-allowed;
   }
 
-  /* Secondary outline button */
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2
-           border border-brand-400/50 text-brand-300 font-semibold px-6 py-3 rounded-xl
-           transition-all duration-300
-           hover:bg-brand-800/50 hover:border-brand-400
-           focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-brand-950;
-  }
-
-  /* Danger button */
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-1
-           bg-red-600/20 border border-red-500/50 text-red-400 font-medium px-3 py-1.5 rounded-lg text-sm
+           bg-surface-2 text-text-secondary font-medium text-sm px-5 py-2.5 rounded-lg
+           border border-surface-border
            transition-all duration-200
-           hover:bg-red-600/40 hover:border-red-400
-           focus:outline-none;
+           hover:border-primary/40 hover:text-text-primary
+           focus:outline-none focus:ring-2 focus:ring-primary/30;
   }
 
-  /* Glass card */
-  .glass-card {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-1.5
+           bg-transparent text-red-400 font-medium text-xs px-3 py-1.5 rounded-md
+           border border-red-900/60
+           transition-all duration-150
+           hover:bg-red-950/60 hover:border-red-700/60;
   }
 
-  /* Form input */
+  .card {
+    @apply bg-surface-1 border border-surface-border rounded-xl;
+  }
+
+  .card-elevated {
+    @apply bg-surface-2 border border-surface-border rounded-xl;
+  }
+
   .form-input {
-    @apply w-full bg-brand-900/60 border border-brand-700/50 text-slate-100 rounded-xl px-4 py-3
-           placeholder:text-slate-500
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
-           transition-all duration-200;
+    @apply w-full bg-surface-3 border border-surface-border text-text-primary rounded-lg
+           px-3.5 py-2.5 text-sm
+           placeholder:text-text-muted
+           focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30
+           transition-colors duration-150;
   }
 
-  /* Section container */
+  .label {
+    @apply block text-xs font-medium text-text-secondary mb-1.5 tracking-wide;
+  }
+
   .section-container {
-    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Section heading */
-  .section-title {
-    @apply font-display text-3xl sm:text-4xl font-bold text-white;
-  }
-
-  /* Gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-brand-300 via-accent-400 to-brand-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent;
+  }
+
+  .section-label {
+    @apply text-xs font-mono text-primary uppercase tracking-[0.15em];
   }
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #1e1b4b;
-}
-::-webkit-scrollbar-thumb {
-  background: #4338ca;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #0A0A0F; }
+::-webkit-scrollbar-thumb { background: #2a2a38; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6366f1; }

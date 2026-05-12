@@ -1,79 +1,93 @@
-/**
- * src/components/About.jsx
- *
- * Event description section with feature cards.
- * WHY feature cards instead of a wall of text: scannable, visually richer,
- * and each icon reinforces the key benefit.
- */
-
-// Feature data kept in a constant — easy to edit without touching JSX
 const FEATURES = [
   {
-    icon: '🏆',
     title: 'Win Big',
-    desc:  'Compete for ₹1,00,000 in prizes across 5 innovative tracks.',
+    desc: 'Compete for a massive prize pool of over ₹5,000,000 across multiple tracks and challenges.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9H4a2 2 0 01-2-2V5h4M18 9h2a2 2 0 002-2V5h-4"/>
+        <path d="M12 17v4M8 21h8M6 9a6 6 0 0012 0V3H6v6z"/>
+      </svg>
+    ),
   },
   {
-    icon: '🤝',
     title: 'Network',
-    desc:  'Connect with 500+ students, mentors, and industry leaders from top companies.',
+    desc: 'Connect with 1000+ passionate students, mentors, and industry leaders from around the world.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+    ),
   },
   {
-    icon: '🚀',
     title: 'Launch',
-    desc:  'Turn your idea into a working prototype in just 36 hours with expert guidance.',
+    desc: 'Turn your crazy ideas into reality in just 36 hours. Get support to take your project further.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    ),
   },
   {
-    icon: '🎓',
     title: 'Learn',
-    desc:  'Attend workshops on AI/ML, Web3, Cloud, and Design Thinking throughout the event.',
+    desc: 'Attend exclusive workshops and tech talks by engineers from top tech companies.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+      </svg>
+    ),
   },
   {
-    icon: '💡',
     title: 'Innovate',
-    desc:  'Tackle real-world challenges across HealthTech, EdTech, FinTech, Green Tech, and Open Innovation.',
+    desc: 'Push boundaries. We provide the hardware, API credits, and mentors. You provide the code.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="9" y1="18" x2="15" y2="18"/>
+        <line x1="10" y1="22" x2="14" y2="22"/>
+        <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14"/>
+      </svg>
+    ),
   },
   {
-    icon: '🌐',
     title: 'Showcase',
-    desc:  'Present your project to a panel of judges from leading tech companies and startups.',
+    desc: 'Demo your hacks to top-tier VC judges and tech recruiters looking for the next big thing.',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+      </svg>
+    ),
   },
 ]
 
 export default function About() {
   return (
     <section id="about" className="py-24 relative">
-      {/* Subtle top separator */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-600/40 to-transparent" />
-
-      <div className="section-container">
-        {/* Heading */}
-        <div className="text-center mb-16">
-          <p className="text-brand-400 font-semibold text-sm uppercase tracking-widest mb-3">
-            About the Event
-          </p>
-          <h2 className="section-title mb-4">
-            What is <span className="gradient-text">InnovateFest?</span>
+      <div className="section-container relative z-10">
+        
+        {/* Section Header */}
+        <div className="text-center mb-14">
+          <p className="section-label mb-3">About the Event</p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-text-primary mb-4">
+            What is InnovateFest?
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            InnovateFest is a 36-hour national student hackathon bringing together the brightest 
-            minds from colleges across India. Whether you're a coder, designer, or domain expert — 
-            there's a track for you.
+          <p className="text-text-secondary text-base max-w-2xl mx-auto leading-relaxed">
+            More than just a hackathon, InnovateFest is a 36-hour celebration of technology, creativity, and the developer community. We bring together the brightest minds to solve real-world problems.
           </p>
         </div>
 
-        {/* Feature grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {FEATURES.map(({ icon, title, desc }) => (
-            <div
-              key={title}
-              className="glass-card p-6 group hover:bg-white/10 hover:border-brand-500/30 transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {FEATURES.map(({ title, desc, icon }) => (
+            <div key={title} className="card p-6 group hover:border-primary/30 transition-colors duration-200">
+              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-5 group-hover:bg-primary/15 transition-colors">
                 {icon}
               </div>
-              <h3 className="text-white font-bold text-lg mb-2">{title}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
+              <h3 className="text-sm font-semibold text-text-primary mb-1.5">{title}</h3>
+              <p className="text-sm text-text-secondary leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>

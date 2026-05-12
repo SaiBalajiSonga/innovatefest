@@ -1,122 +1,97 @@
-/**
- * src/components/Timeline.jsx
- *
- * Visual event schedule displayed as a vertical timeline.
- * WHY vertical timeline: intuitive for sequential steps, works great on mobile.
- * The alternating left/right layout on desktop creates visual interest.
- *
- * COMMON MISTAKE: Don't use absolute positioning for the line if you want it
- * to grow with content. Use a flex column with a border on the child instead.
- */
-
-const TIMELINE_EVENTS = [
+const SCHEDULE = [
   {
-    date:  'May 1',
-    time:  '12:00 PM',
-    title: 'Registrations Open',
-    desc:  'Submit your team or solo application. Early bird slots are limited.',
-    icon:  '📋',
-    color: 'from-brand-500 to-brand-600',
+    date: 'May 1',
+    time: '12:00 AM',
+    title: 'Registration Opens',
+    desc: 'Secure your spot! We accept applications on a rolling basis until capacity is reached.',
   },
   {
-    date:  'May 20',
-    time:  '11:59 PM',
-    title: 'Registration Deadline',
-    desc:  'Last day to register. Shortlisted participants will be notified within 48 hours.',
-    icon:  '⏰',
-    color: 'from-accent-500 to-accent-600',
+    date: 'May 20',
+    time: '11:59 PM',
+    title: 'Registration Closes',
+    desc: 'Last chance to register. Team formations must be finalized by this date.',
   },
   {
-    date:  'May 25',
-    time:  '10:00 AM',
-    title: 'Hackathon Begins',
-    desc:  'Opening ceremony, team introductions, and problem statement reveal. The clock starts!',
-    icon:  '🚀',
-    color: 'from-green-500 to-emerald-600',
+    date: 'May 25',
+    time: '09:00 AM',
+    title: 'Opening Ceremony',
+    desc: 'Kickoff! Keynote speakers, theme announcements, and track details revealed.',
   },
   {
-    date:  'May 26',
-    time:  '12:00 PM',
-    title: 'Mid-point Review',
-    desc:  'Mentors review progress. Pivot if needed — mentors are here to guide you.',
-    icon:  '🎯',
-    color: 'from-yellow-500 to-orange-500',
+    date: 'May 25',
+    time: '11:00 AM',
+    title: 'Hacking Begins',
+    desc: '36 hours on the clock. Get coding! Mentors will be circulating to help you brainstorm.',
   },
   {
-    date:  'May 26',
-    time:  '10:00 PM',
-    title: 'Final Submissions',
-    desc:  'Submit your GitHub repo, demo video, and presentation deck by 10 PM sharp.',
-    icon:  '📦',
-    color: 'from-pink-500 to-rose-600',
+    date: 'May 26',
+    time: '11:00 PM',
+    title: 'Hacking Ends',
+    desc: 'Pens down, keyboards away. Submit your projects to Devpost for judging.',
   },
   {
-    date:  'May 27',
-    time:  '02:00 PM',
-    title: 'Demo Day & Awards',
-    desc:  'Present to judges. Top 10 teams demo live. Awards ceremony and closing event.',
-    icon:  '🏆',
-    color: 'from-brand-400 to-accent-500',
+    date: 'May 27',
+    time: '03:00 PM',
+    title: 'Closing Ceremony & Winners',
+    desc: 'Live demos from top 10 teams, prize distributions, and closing notes.',
   },
 ]
 
 export default function Timeline() {
   return (
-    <section id="timeline" className="py-24 relative">
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-600/40 to-transparent" />
-
+    <section id="timeline" className="py-24 bg-surface-1">
       <div className="section-container">
-        {/* Heading */}
+        
+        {/* Section Header */}
         <div className="text-center mb-16">
-          <p className="text-brand-400 font-semibold text-sm uppercase tracking-widest mb-3">
-            Schedule
-          </p>
-          <h2 className="section-title">
-            Event <span className="gradient-text">Timeline</span>
+          <p className="section-label mb-3">Schedule</p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-text-primary">
+            Event Timeline
           </h2>
         </div>
 
-        {/* Timeline list */}
-        <div className="relative max-w-3xl mx-auto">
+        {/* Timeline container */}
+        <div className="max-w-4xl mx-auto relative">
+          
           {/* Vertical connecting line */}
-          <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-brand-600/60 via-accent-500/40 to-transparent md:-translate-x-px" />
+          <div className="absolute left-4 top-4 bottom-4 w-[1px] bg-surface-border md:left-1/2 md:-translate-x-1/2" />
 
-          <div className="space-y-10">
-            {TIMELINE_EVENTS.map(({ date, time, title, desc, icon, color }, idx) => {
-              // On desktop, alternate left and right
-              const isRight = idx % 2 !== 0
+          {/* Timeline Events */}
+          <div className="space-y-8">
+            {SCHEDULE.map(({ date, time, title, desc }, idx) => {
+              // Highlight the upcoming event (for demo, assuming 3rd event is active)
+              const isActive = idx === 2;
 
               return (
-                <div
-                  key={title}
-                  className={`relative flex items-start gap-6 md:gap-0 ${
-                    isRight ? 'md:flex-row-reverse' : 'md:flex-row'
-                  }`}
-                >
-                  {/* Icon bubble — sits on the vertical line */}
-                  <div className={`relative z-10 flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-2xl shadow-lg shadow-brand-900/50 md:mx-auto`}>
-                    {icon}
+                <div key={title} className={`relative flex flex-col md:flex-row gap-6 md:gap-12 ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
+                  
+                  {/* Timeline Node */}
+                  <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 flex items-center justify-center w-8 h-8">
+                    <div className={`relative z-10 flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center font-mono text-xs md:mx-auto transition-colors duration-300 ${isActive ? 'border-primary/60 text-primary bg-surface-1' : 'border-surface-border bg-surface-2 text-text-muted'}`}>
+                      {String(idx + 1).padStart(2, '0')}
+                    </div>
                   </div>
 
-                  {/* Card */}
-                  <div
-                    className={`glass-card p-5 flex-1 hover:bg-white/10 transition-all duration-300 md:max-w-[calc(50%-3rem)] ${
-                      isRight ? 'md:mr-8' : 'md:ml-8'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-brand-400 font-bold text-sm">{date}</span>
-                      <span className="text-slate-600 text-xs">•</span>
-                      <span className="text-slate-400 text-xs">{time}</span>
+                  {/* Card wrapper */}
+                  <div className="ml-12 md:ml-0 flex-1 md:w-1/2 flex flex-col group">
+                    <div className={`card p-4 flex-1 transition-colors duration-200 md:max-w-[calc(100%-1.5rem)] ${idx % 2 === 0 ? 'md:ml-auto' : 'md:mr-auto'} ${isActive ? 'border-primary/40' : 'hover:border-surface-border/80'}`}>
+                      
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-mono text-xs text-primary">{date}</span>
+                        <span className="text-surface-border text-xs">·</span>
+                        <span className="font-mono text-xs text-text-muted">{time}</span>
+                      </div>
+                      
+                      <h3 className="text-sm font-semibold text-text-primary mb-1">{title}</h3>
+                      <p className="text-xs text-text-secondary leading-relaxed">{desc}</p>
                     </div>
-                    <h3 className="text-white font-bold text-lg mb-1">{title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
                   </div>
                 </div>
               )
             })}
           </div>
         </div>
+        
       </div>
     </section>
   )

@@ -1,43 +1,29 @@
-/**
- * src/pages/Admin.jsx
- *
- * Protected admin dashboard.
- * Uses useAuth to redirect unauthenticated users to /admin/login.
- * Fetches all registrations on mount, subscribes to realtime INSERTs,
- * and passes data down to AdminTable.jsx for rendering.
- *
- * WHY handle data here instead of in AdminTable:
- * Separation of concerns. Admin.jsx handles the data layer (fetch, realtime, mutations),
- * while AdminTable is purely a dumb presentation component. This makes testing easier.
- *
- * COMMON MISTAKE: Forgetting to clean up the realtime subscription on unmount,
- * which causes memory leaks and duplicate events if the user navigates away and back.
- */
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-
 import { supabase } from '../lib/supabaseClient'
-import { useAuth }  from '../hooks/useAuth'
-import AdminTable   from '../components/AdminTable'
+import useAuth from '../hooks/useAuth'
+import AdminTable from '../components/AdminTable'
 
 export default function Admin() {
-  const navigate = useNavigate()
   const { session, loading: authLoading } = useAuth()
-
+  const navigate = useNavigate()
+  
   const [registrations, setRegistrations] = useState([])
-  const [loading, setLoading]             = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // ── 1. AUTH GUARD ──
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !session) {
-      navigate('/admin/login', { replace: true })
+      navigate('/admin/login')
     }
   }, [session, authLoading, navigate])
 
-  // ── 2. DATA FETCHING ──
-  const fetchRegistrations = useCallback(async () => {
-    try {
+  // Fetch initial data
+  useEffect(() => {
+    if (!session) return
+
+    const fetchRegistrations = async () => {
       const { data, error } = await supabase
         .from('registrations')
         .select('*')
@@ -46,49 +32,51 @@ export default function Admin() {
 
       if (error) throw error
       setRegistrations(data || [])
-    } catch (err) {
-      toast.error('Failed to load registrations.')
-      console.error('Fetch error:', err)
-    } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }, [])
 
-  // Mount effect: fetch initial data and subscribe to Realtime
+    fetchRegistrations().catch(err => {
+      console.error(err)
+      toast.error('Failed to load registrations')
+      setIsLoading(false)
+    })
+  }, [session])
+
+  // Subscribe to real-time inserts
   useEffect(() => {
-    if (authLoading || !session) return // wait until authenticated
+    if (!session) return
 
-    fetchRegistrations()
-
-    // Subscribe to new registrations (INSERT only)
     const channel = supabase
-      .channel('registrations-changes')
+      .channel('schema-db-changes')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'registrations' },
         (payload) => {
-          // Add the new row to the top of the local state
-          setRegistrations(prev => [payload.new, ...prev])
-          toast('New registration received!', { icon: '🔔' })
+          // Optimistically add new registration to the top of the list
+          setRegistrations((prev) => [payload.new, ...prev])
+          toast('New registration received', { icon: null })
         }
       )
       .subscribe()
 
-    // Cleanup subscription on unmount
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [authLoading, session, fetchRegistrations])
+  }, [session])
 
-  // ── 3. MUTATIONS ──
+  // Handle Logout
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    navigate('/admin/login')
+  }
 
-  // Toggle status (pending <-> approved)
-  const handleToggleStatus = async (id, currentStatus) => {
-    const newStatus = currentStatus === 'approved' ? 'pending' : 'approved'
-
-    // Optimistic update for immediate UI feedback
-    setRegistrations(prev =>
-      prev.map(r => r.id === id ? { ...r, status: newStatus } : r)
+  // Handle Status Toggle (Approve / Pending)
+  const toggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'pending' ? 'approved' : 'pending'
+    
+    // Optimistic UI update
+    setRegistrations(prev => 
+      prev.map(reg => reg.id === id ? { ...reg, status: newStatus } : reg)
     )
 
     try {
@@ -98,22 +86,24 @@ export default function Admin() {
         .eq('id', id)
 
       if (error) throw error
-      toast.success(`Status updated to ${newStatus}`)
-    } catch (err) {
+      toast.success(`Applicant marked as ${newStatus}`)
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to update status')
       // Revert optimistic update on failure
-      setRegistrations(prev =>
-        prev.map(r => r.id === id ? { ...r, status: currentStatus } : r)
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === id ? { ...reg, status: currentStatus } : reg)
       )
-      toast.error('Failed to update status.')
-      console.error('Update error:', err)
     }
   }
 
-  // Delete registration
-  const handleDelete = async (id) => {
-    // Optimistic remove
-    const previous = [...registrations]
-    setRegistrations(prev => prev.filter(r => r.id !== id))
+  // Handle Deletion
+  const deleteRegistration = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this registration? This cannot be undone.')) return
+
+    // Optimistic UI update
+    const previousState = [...registrations]
+    setRegistrations(prev => prev.filter(reg => reg.id !== id))
 
     try {
       const { error } = await supabase
@@ -123,67 +113,53 @@ export default function Admin() {
 
       if (error) throw error
       toast.success('Registration deleted')
-    } catch (err) {
-      // Revert
-      setRegistrations(previous)
-      toast.error('Failed to delete registration.')
-      console.error('Delete error:', err)
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to delete registration')
+      // Revert optimistic update
+      setRegistrations(previousState)
     }
   }
 
-  // Logout
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    navigate('/admin/login')
-  }
-
-  // ── 4. RENDER ──
-  if (authLoading || !session) {
-    return (
-      <div className="min-h-screen bg-brand-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  // Show nothing while checking auth session
+  if (authLoading || !session) return null
 
   return (
-    <main className="min-h-screen bg-brand-950 p-4 sm:p-8">
+    <div className="min-h-screen bg-surface p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-card p-6 border-b border-white/10">
+        
+        {/* Header Section */}
+        <header className="card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold text-white">
-              Admin <span className="gradient-text">Dashboard</span>
+            <h1 className="font-display text-xl font-semibold text-text-primary">
+              Admin Dashboard
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Manage InnovateFest registrations</p>
+            <p className="text-xs font-mono text-text-muted mt-0.5">
+              InnovateFest 2026 · Registration Management
+            </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="btn-secondary text-sm px-4 py-2"
-          >
+          <button onClick={handleLogout} className="btn-secondary text-xs px-4 py-2">
             Sign Out
           </button>
         </header>
 
-        {/* Content area */}
-        <div className="glass-card p-4 sm:p-6 shadow-2xl">
-          {loading ? (
-            <div className="py-24 flex flex-col items-center justify-center text-brand-400">
-              <svg className="animate-spin h-8 w-8 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-              </svg>
-              Loading registrations…
+        {/* Main Content Area */}
+        <main className="card p-5 overflow-hidden">
+          {isLoading ? (
+            <div className="py-24 flex flex-col items-center gap-3 text-text-muted">
+              <div className="w-5 h-5 border border-surface-border border-t-primary rounded-full animate-spin" />
+              <span className="text-xs font-mono">Loading registrations...</span>
             </div>
           ) : (
-            <AdminTable
-              rows={registrations}
-              onStatusToggle={handleToggleStatus}
-              onDelete={handleDelete}
+            <AdminTable 
+              data={registrations} 
+              onToggleStatus={toggleStatus}
+              onDelete={deleteRegistration}
             />
           )}
-        </div>
+        </main>
+        
       </div>
-    </main>
+    </div>
   )
 }

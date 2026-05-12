@@ -1,290 +1,237 @@
-/**
- * src/components/AdminTable.jsx
- *
- * Displays paginated registrations with search, sort, status toggle, delete, and CSV export.
- *
- * Props:
- *   rows         {object[]} — all registrations fetched from Supabase
- *   onStatusToggle {function(id, currentStatus)} — called to flip pending↔approved
- *   onDelete       {function(id)}                — called to delete a row
- *
- * WHY client-side search + sort: for a hackathon with ~500 registrations this is fine.
- * Server-side filtering (via Supabase .filter()) is more appropriate at 10k+ rows
- * and can be swapped in by changing the fetch in Admin.jsx.
- *
- * WHY client-side CSV: avoids a backend endpoint. Fine for this scale. Just stringify
- * the data and trigger a download via a Blob URL.
- *
- * Pagination: slices the filtered array — no extra fetch needed.
- */
 import { useState, useMemo } from 'react'
 
-const PAGE_SIZE = 10
+export default function AdminTable({ data, onToggleStatus, onDelete }) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortConfig, setSortConfig] = useState({ key: 'submitted_at', direction: 'desc' })
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 15
 
-// ── CSV EXPORT ─────────────────────────────────────────────────────────────
-function exportToCSV(rows) {
-  const headers = ['ID', 'Name', 'Email', 'College', 'Year', 'Skills', 'Motivation', 'Status', 'Submitted At']
-  const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
+  // 1. Search Filter
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return data
+    const lowerSearch = searchTerm.toLowerCase()
+    return data.filter(item => 
+      item.full_name.toLowerCase().includes(lowerSearch) ||
+      item.email.toLowerCase().includes(lowerSearch) ||
+      item.university.toLowerCase().includes(lowerSearch)
+    )
+  }, [data, searchTerm])
 
-  const lines = [
-    headers.join(','),
-    ...rows.map(r => [
-      escape(r.id),
-      escape(r.full_name),
-      escape(r.email),
-      escape(r.college),
-      escape(r.year_of_study),
-      escape((r.skills ?? []).join('; ')),
-      escape(r.motivation),
-      escape(r.status),
-      escape(new Date(r.submitted_at).toLocaleString()),
-    ].join(',')),
-  ]
+  // 2. Sort Logic
+  const sortedData = useMemo(() => {
+    const sortableItems = [...filteredData]
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        let aValue = a[sortConfig.key]
+        let bValue = b[sortConfig.key]
+        
+        // Handle nulls
+        if (aValue === null) return 1
+        if (bValue === null) return -1
 
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
-  const url  = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href     = url
-  link.download = `innovatefest-registrations-${Date.now()}.csv`
-  link.click()
-  URL.revokeObjectURL(url)
-}
+        // String comparison
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase()
+          bValue = bValue.toLowerCase()
+        }
 
-// ── STATUS BADGE ───────────────────────────────────────────────────────────
-function StatusBadge({ status }) {
-  const base = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold'
-  return status === 'approved' ? (
-    <span className={`${base} bg-green-500/20 text-green-400 border border-green-500/30`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Approved
-    </span>
-  ) : (
-    <span className={`${base} bg-yellow-500/20 text-yellow-400 border border-yellow-500/30`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />Pending
-    </span>
-  )
-}
-
-// ── SORT ICON ──────────────────────────────────────────────────────────────
-function SortIcon({ active, asc }) {
-  return (
-    <svg className={`w-3.5 h-3.5 ml-1 inline ${active ? 'text-brand-300' : 'text-slate-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      {asc
-        ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-        : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      }
-    </svg>
-  )
-}
-
-// ── MAIN COMPONENT ─────────────────────────────────────────────────────────
-export default function AdminTable({ rows, onStatusToggle, onDelete }) {
-  const [search, setSearch]     = useState('')
-  const [sortKey, setSortKey]   = useState('submitted_at')
-  const [sortAsc, setSortAsc]   = useState(false)
-  const [page, setPage]         = useState(1)
-  // Track which row is awaiting deletion confirmation
-  const [confirmDelete, setConfirmDelete] = useState(null)
-
-  // Toggle sort column; if same column, flip direction
-  const handleSort = (key) => {
-    if (sortKey === key) setSortAsc(prev => !prev)
-    else { setSortKey(key); setSortAsc(true) }
-    setPage(1) // reset to page 1 on re-sort
-  }
-
-  // Derived: filter then sort
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase()
-    return rows
-      .filter(r =>
-        !q ||
-        r.full_name.toLowerCase().includes(q) ||
-        r.college.toLowerCase().includes(q)  ||
-        (r.skills ?? []).some(s => s.toLowerCase().includes(q))
-      )
-      .sort((a, b) => {
-        let valA = a[sortKey]
-        let valB = b[sortKey]
-        // Dates: compare as timestamps
-        if (sortKey === 'submitted_at') { valA = new Date(valA); valB = new Date(valB) }
-        if (valA < valB) return sortAsc ? -1 : 1
-        if (valA > valB) return sortAsc ?  1 : -1
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
         return 0
       })
-  }, [rows, search, sortKey, sortAsc])
+    }
+    return sortableItems
+  }, [filteredData, sortConfig])
 
-  // Pagination
-  const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const currentRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  // 3. Pagination Logic
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / itemsPerPage))
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return sortedData.slice(startIndex, startIndex + itemsPerPage)
+  }, [sortedData, currentPage])
 
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value)
-    setPage(1) // reset page on new search
+  // Reset to page 1 if search changes
+  useMemo(() => { setCurrentPage(1) }, [searchTerm])
+
+  // Handle Sort Click
+  const requestSort = (key) => {
+    let direction = 'asc'
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    setSortConfig({ key, direction })
+  }
+
+  // Handle CSV Export
+  const exportToCSV = () => {
+    if (sortedData.length === 0) return
+
+    // Get headers from first object
+    const headers = Object.keys(sortedData[0])
+    
+    // Convert array of objects to CSV string
+    const csvContent = [
+      headers.join(','), // Header row
+      ...sortedData.map(row => 
+        headers.map(header => {
+          let cell = row[header] === null ? '' : row[header]
+          // Escape quotes and wrap in quotes if contains comma
+          if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+            cell = `"${cell.replace(/"/g, '""')}"`
+          }
+          // Stringify arrays (like skills)
+          if (Array.isArray(cell)) {
+            cell = `"${cell.join('; ')}"`
+          }
+          return cell
+        }).join(',')
+      )
+    ].join('\n')
+
+    // Trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `innovatefest-registrations-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Helper for Sort Indicator
+  const SortIcon = ({ columnKey }) => {
+    const active = sortConfig.key === columnKey
+    return (
+      <svg 
+        className={`w-3 h-3 ml-1 inline transition-colors ${active ? 'text-primary' : 'text-surface-border'}`} 
+        fill="none" viewBox="0 0 24 24" stroke="currentColor"
+      >
+        {active && sortConfig.direction === 'asc' ? (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        )}
+      </svg>
+    )
   }
 
   return (
     <div className="space-y-4">
-      {/* ── Toolbar ── */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+      
+      {/* Table Controls */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
         {/* Search */}
-        <div className="relative flex-1 max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+        <div className="relative w-full sm:max-w-xs">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
           <input
-            id="admin-search"
             type="text"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search by name, college, or skill…"
-            className="form-input pl-9 py-2 text-sm"
+            className="form-input text-sm py-2 pl-9"
+            placeholder="Search name, email, university..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        {/* Count + export */}
-        <div className="flex items-center gap-3">
-          <span className="text-slate-400 text-sm">
-            <span className="text-white font-bold">{filtered.length}</span>
-            {' '}of{' '}
-            <span className="text-white font-bold">{rows.length}</span>
-            {' '}registrations
+        {/* Actions */}
+        <div className="flex items-center gap-4">
+          <span className="text-xs font-mono text-text-muted">
+            {sortedData.length} records
           </span>
-          <button
-            id="admin-export-btn"
-            onClick={() => exportToCSV(filtered)}
-            className="btn-secondary text-sm py-2 px-4"
-          >
-            ↓ Export CSV
+          <button onClick={exportToCSV} className="btn-secondary text-xs py-2 px-4">
+            Export CSV
           </button>
         </div>
       </div>
 
-      {/* ── Table ── */}
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
-        <table className="w-full text-sm">
+      {/* Table Wrapper for Horizontal Scroll */}
+      <div className="overflow-x-auto rounded-lg border border-surface-border bg-surface-1">
+        <table className="min-w-full divide-y divide-surface-border">
           <thead>
-            <tr className="border-b border-white/10 bg-brand-900/40">
-              {/* Sortable headers */}
-              {[
-                { label: 'Name',    key: 'full_name'     },
-                { label: 'Email',   key: 'email'         },
-                { label: 'College', key: 'college'       },
-                { label: 'Year',    key: 'year_of_study' },
-              ].map(({ label, key }) => (
-                <th
-                  key={key}
-                  onClick={() => handleSort(key)}
-                  className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-brand-300 transition-colors select-none whitespace-nowrap"
-                >
-                  {label}
-                  <SortIcon active={sortKey === key} asc={sortAsc} />
-                </th>
-              ))}
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Skills</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
-              <th
-                onClick={() => handleSort('submitted_at')}
-                className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-brand-300 transition-colors select-none whitespace-nowrap"
-              >
-                Date
-                <SortIcon active={sortKey === 'submitted_at'} asc={sortAsc} />
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
+            <tr className="border-b border-surface-border bg-surface-2">
+              {['Full Name', 'Email', 'University', 'Status', 'Date', 'Actions'].map((header, i) => {
+                // Map headers to object keys for sorting
+                const keys = ['full_name', 'email', 'university', 'status', 'submitted_at', null]
+                const key = keys[i]
+                
+                return (
+                  <th 
+                    key={header}
+                    onClick={() => key ? requestSort(key) : null}
+                    className={`px-4 py-3 text-left text-xs font-mono text-text-muted uppercase tracking-wider select-none whitespace-nowrap ${key ? 'cursor-pointer hover:text-text-primary transition-colors' : ''}`}
+                  >
+                    {header} {key && <SortIcon columnKey={key} />}
+                  </th>
+                )
+              })}
             </tr>
           </thead>
-
-          <tbody className="divide-y divide-white/5">
-            {currentRows.length === 0 ? (
+          <tbody className="divide-y divide-surface-border">
+            {paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-slate-500">
-                  {search ? 'No registrations match your search.' : 'No registrations yet.'}
+                <td colSpan="6" className="px-4 py-8 text-center text-sm text-text-muted">
+                  No registrations found.
                 </td>
               </tr>
             ) : (
-              currentRows.map(row => (
-                <tr key={row.id} className="hover:bg-white/5 transition-colors duration-150">
-                  {/* Name */}
-                  <td className="px-4 py-3 font-medium text-white whitespace-nowrap">{row.full_name}</td>
-
-                  {/* Email */}
-                  <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
-                    <a href={`mailto:${row.email}`} className="hover:text-brand-300 transition-colors">{row.email}</a>
+              paginatedData.map((reg) => (
+                <tr key={reg.id} className="hover:bg-surface-2/40 transition-colors duration-100">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-text-primary">
+                    {reg.full_name}
                   </td>
-
-                  {/* College */}
-                  <td className="px-4 py-3 text-slate-300 whitespace-nowrap max-w-[160px] truncate" title={row.college}>
-                    {row.college}
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
+                    {reg.email}
                   </td>
-
-                  {/* Year */}
-                  <td className="px-4 py-3 text-center text-slate-300">{row.year_of_study}</td>
-
-                  {/* Skills */}
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1 max-w-[180px]">
-                      {(row.skills ?? []).slice(0, 4).map(s => (
-                        <span key={s} className="bg-brand-800/60 text-brand-300 text-xs px-2 py-0.5 rounded-md">
-                          {s}
-                        </span>
-                      ))}
-                      {(row.skills ?? []).length > 4 && (
-                        <span className="text-slate-500 text-xs">+{row.skills.length - 4}</span>
-                      )}
-                    </div>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
+                    {reg.university}
                   </td>
-
-                  {/* Status */}
-                  <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
-
-                  {/* Date */}
-                  <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
-                    {new Date(row.submitted_at).toLocaleDateString('en-IN', {
-                      day: '2-digit', month: 'short', year: 'numeric',
-                    })}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {reg.status === 'approved' ? (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-mono bg-emerald-950/60 border border-emerald-900/60 text-emerald-400">
+                        <span className="w-1 h-1 rounded-sm bg-emerald-400" />Approved
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-mono bg-amber-950/60 border border-amber-900/60 text-amber-400">
+                        <span className="w-1 h-1 rounded-sm bg-amber-400" />Pending
+                      </span>
+                    )}
                   </td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-2">
-                      {/* Toggle status */}
-                      <button
-                        onClick={() => onStatusToggle(row.id, row.status)}
-                        title={row.status === 'approved' ? 'Mark as Pending' : 'Approve'}
-                        className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all duration-200 font-medium whitespace-nowrap ${
-                          row.status === 'approved'
-                            ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20'
-                            : 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
-                        }`}
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
+                    {new Date(reg.submitted_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium flex gap-2">
+                    {reg.status === 'pending' ? (
+                      <button 
+                        onClick={() => onToggleStatus(reg.id, reg.status)}
+                        className="text-xs px-2.5 py-1 rounded-md border border-emerald-900/60 text-emerald-400 hover:bg-emerald-950/60 transition-colors font-mono"
                       >
-                        {row.status === 'approved' ? '↩ Pending' : '✓ Approve'}
+                        Approve
                       </button>
-
-                      {/* Delete */}
-                      {confirmDelete === row.id ? (
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => { onDelete(row.id); setConfirmDelete(null) }}
-                            className="btn-danger"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(null)}
-                            className="text-xs px-2 py-1.5 text-slate-400 hover:text-white transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmDelete(row.id)}
-                          className="btn-danger"
-                          title="Delete registration"
-                        >
-                          🗑
-                        </button>
-                      )}
-                    </div>
+                    ) : (
+                      <button 
+                        onClick={() => onToggleStatus(reg.id, reg.status)}
+                        className="text-xs px-2.5 py-1 rounded-md border border-amber-900/60 text-amber-400 hover:bg-amber-950/60 transition-colors font-mono"
+                      >
+                        Revert
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => onDelete(reg.id)}
+                      className="text-xs p-1.5 rounded-md border border-red-900/60 text-red-400 hover:bg-red-950/60 transition-colors"
+                      title="Delete Registration"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14H6L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4h6v2"/>
+                      </svg>
+                    </button>
                   </td>
                 </tr>
               ))
@@ -293,30 +240,29 @@ export default function AdminTable({ rows, onStatusToggle, onDelete }) {
         </table>
       </div>
 
-      {/* ── Pagination ── */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 pt-2">
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-mono text-text-muted">
+          Page <span className="text-text-primary">{currentPage}</span> of {totalPages}
+        </span>
+        <div className="flex gap-2">
           <button
-            id="admin-prev-page"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="btn-secondary text-sm py-1.5 px-4 disabled:opacity-40"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-50"
           >
-            ← Prev
+            Prev
           </button>
-          <span className="text-slate-400 text-sm">
-            Page <span className="text-white font-semibold">{page}</span> of <span className="text-white font-semibold">{totalPages}</span>
-          </span>
           <button
-            id="admin-next-page"
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="btn-secondary text-sm py-1.5 px-4 disabled:opacity-40"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-50"
           >
-            Next →
+            Next
           </button>
         </div>
-      )}
+      </div>
+
     </div>
   )
 }

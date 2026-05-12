@@ -1,253 +1,249 @@
-/**
- * src/components/RegistrationForm.jsx
- *
- * The actual registration form. Handles all validation client-side before
- * sending data to Supabase. The parent page (Register.jsx) only provides layout.
- *
- * Validation rules:
- *   - All fields required
- *   - Email must pass regex
- *   - At least one skill tag required
- *   - Motivation ≤ 500 chars (enforced by textarea maxLength AND DB constraint)
- *   - Duplicate email caught via Supabase error.code === '23505'
- *
- * COMMON MISTAKE: Don't rely solely on DB constraints — validate on the client
- * too, for instant feedback without a network round-trip.
- */
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-
 import { supabase } from '../lib/supabaseClient'
 import TagInput from './TagInput'
 
-// Email regex: basic but catches most invalid formats
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const YEAR_OPTIONS = [1, 2, 3, 4, 5]
-const MOTIVATION_MAX = 500
-
-const INITIAL_FORM = {
-  full_name:     '',
-  email:         '',
-  college:       '',
-  year_of_study: '',
-  motivation:    '',
-}
-
 export default function RegistrationForm() {
-  const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    university: '',
+    degree: '',
+    graduation_year: '',
+    skills: [],
+    motivation: ''
+  })
+  
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
-  const [form, setForm]       = useState(INITIAL_FORM)
-  const [skills, setSkills]   = useState([])
-  const [errors, setErrors]   = useState({})
-  const [loading, setLoading] = useState(false)
-
-  // Generic field change handler — avoids one handler per field
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
-    // Clear the individual field error as the user types
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error when user types
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
-  // Client-side validation — returns an errors object
   const validate = () => {
-    const errs = {}
-    if (!form.full_name.trim())   errs.full_name     = 'Full name is required.'
-    if (!form.email.trim())       errs.email         = 'Email is required.'
-    else if (!EMAIL_RE.test(form.email)) errs.email  = 'Please enter a valid email address.'
-    if (!form.college.trim())     errs.college       = 'College name is required.'
-    if (!form.year_of_study)      errs.year_of_study = 'Please select your year of study.'
-    if (skills.length === 0)      errs.skills        = 'Add at least one skill.'
-    if (!form.motivation.trim())  errs.motivation    = 'Motivation is required.'
-    else if (form.motivation.length > MOTIVATION_MAX)
-      errs.motivation = `Motivation must be ${MOTIVATION_MAX} characters or fewer.`
-    return errs
+    const newErrors = {}
+    if (!formData.full_name.trim()) newErrors.full_name = 'Full name is required'
+    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Valid email is required'
+    if (!formData.university.trim()) newErrors.university = 'University is required'
+    if (!formData.degree.trim()) newErrors.degree = 'Degree/Major is required'
+    if (!formData.graduation_year) newErrors.graduation_year = 'Graduation year is required'
+    if (formData.skills.length === 0) newErrors.skills = 'Add at least one skill'
+    
+    if (!formData.motivation.trim()) {
+      newErrors.motivation = 'Please tell us why you want to join'
+    } else if (formData.motivation.length < 50) {
+      newErrors.motivation = 'Please provide at least 50 characters'
+    } else if (formData.motivation.length > 500) {
+      newErrors.motivation = 'Motivation must be under 500 characters'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    // 1. Validate locally first
-    const errs = validate()
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs)
+    
+    if (!validate()) {
+      toast.error('Please fix the errors in the form')
       return
     }
 
-    setLoading(true)
+    setIsSubmitting(true)
 
     try {
-      const { error } = await supabase.from('registrations').insert([{
-        full_name:     form.full_name.trim(),
-        email:         form.email.trim().toLowerCase(),
-        college:       form.college.trim(),
-        year_of_study: parseInt(form.year_of_study, 10),
-        skills,
-        motivation:    form.motivation.trim(),
-      }])
+      const { error } = await supabase
+        .from('registrations')
+        .insert([{
+          full_name: formData.full_name,
+          email: formData.email,
+          university: formData.university,
+          degree: formData.degree,
+          graduation_year: parseInt(formData.graduation_year, 10),
+          skills: formData.skills,
+          motivation: formData.motivation
+        }])
 
       if (error) {
-        // 2. Handle known Supabase error codes
         if (error.code === '23505') {
-          // Unique constraint violation — duplicate email
-          setErrors({ email: 'This email is already registered. Did you already sign up?' })
-          toast.error('This email is already registered.')
-        } else {
-          // Generic DB error — show raw message for debugging
-          toast.error(`Registration failed: ${error.message}`)
+          throw new Error('An application with this email already exists.')
         }
-        return
+        throw error
       }
 
-      // 3. Success
-      toast.success('🎉 You\'re registered! See you at InnovateFest.')
-      navigate('/')
-    } catch (err) {
-      // Network / unexpected errors
-      toast.error('Something went wrong. Please check your connection and try again.')
-      console.error('Registration error:', err)
+      setIsSuccess(true)
+      toast.success('Registration submitted successfully!')
+      
+    } catch (error) {
+      console.error('Submission error:', error)
+      toast.error(error.message || 'Failed to submit registration. Please try again.')
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
-  const remaining = MOTIVATION_MAX - form.motivation.length
+  if (isSuccess) {
+    return (
+      <div className="text-center py-8 animate-fade-in">
+        <div className="w-16 h-16 bg-emerald-950/60 border border-emerald-900/60 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-400">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h3 className="text-xl font-bold text-text-primary mb-2">Application Received!</h3>
+        <p className="text-sm text-text-secondary">
+          Thank you for applying to InnovateFest. We will review your application and get back to you shortly at <strong className="text-text-primary">{formData.email}</strong>.
+        </p>
+      </div>
+    )
+  }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-6">
-      {/* ── Full Name ── */}
+    <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
+      
+      {/* Full Name */}
       <div>
-        <label htmlFor="reg-full-name" className="block text-sm font-medium text-slate-300 mb-1.5">
-          Full Name <span className="text-red-400">*</span>
-        </label>
+        <label htmlFor="full_name" className="label">Full Name</label>
         <input
-          id="reg-full-name"
+          type="text"
+          id="full_name"
           name="full_name"
-          type="text"
-          value={form.full_name}
+          value={formData.full_name}
           onChange={handleChange}
-          placeholder="e.g. Priya Sharma"
-          autoComplete="name"
-          className={`form-input ${errors.full_name ? 'border-red-500/70 focus:ring-red-500' : ''}`}
+          className="form-input"
+          placeholder="Jane Doe"
+          disabled={isSubmitting}
         />
-        {errors.full_name && <p className="mt-1 text-red-400 text-xs">{errors.full_name}</p>}
+        {errors.full_name && <p className="text-xs text-red-400 mt-1.5">{errors.full_name}</p>}
       </div>
 
-      {/* ── Email ── */}
+      {/* Email */}
       <div>
-        <label htmlFor="reg-email" className="block text-sm font-medium text-slate-300 mb-1.5">
-          Email Address <span className="text-red-400">*</span>
-        </label>
+        <label htmlFor="email" className="label">Email Address</label>
         <input
-          id="reg-email"
-          name="email"
           type="email"
-          value={form.email}
+          id="email"
+          name="email"
+          value={formData.email}
           onChange={handleChange}
-          placeholder="you@college.edu"
-          autoComplete="email"
-          className={`form-input ${errors.email ? 'border-red-500/70 focus:ring-red-500' : ''}`}
+          className="form-input"
+          placeholder="jane@university.edu"
+          disabled={isSubmitting}
         />
-        {errors.email && <p className="mt-1 text-red-400 text-xs">{errors.email}</p>}
+        {errors.email && <p className="text-xs text-red-400 mt-1.5">{errors.email}</p>}
       </div>
 
-      {/* ── College ── */}
-      <div>
-        <label htmlFor="reg-college" className="block text-sm font-medium text-slate-300 mb-1.5">
-          College / University <span className="text-red-400">*</span>
-        </label>
-        <input
-          id="reg-college"
-          name="college"
-          type="text"
-          value={form.college}
-          onChange={handleChange}
-          placeholder="e.g. IIT Bombay"
-          autoComplete="organization"
-          className={`form-input ${errors.college ? 'border-red-500/70 focus:ring-red-500' : ''}`}
-        />
-        {errors.college && <p className="mt-1 text-red-400 text-xs">{errors.college}</p>}
-      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {/* University */}
+        <div>
+          <label htmlFor="university" className="label">University / College</label>
+          <input
+            type="text"
+            id="university"
+            name="university"
+            value={formData.university}
+            onChange={handleChange}
+            className="form-input"
+            placeholder="MIT"
+            disabled={isSubmitting}
+          />
+          {errors.university && <p className="text-xs text-red-400 mt-1.5">{errors.university}</p>}
+        </div>
 
-      {/* ── Year of Study ── */}
-      <div>
-        <label htmlFor="reg-year" className="block text-sm font-medium text-slate-300 mb-1.5">
-          Year of Study <span className="text-red-400">*</span>
-        </label>
-        <select
-          id="reg-year"
-          name="year_of_study"
-          value={form.year_of_study}
-          onChange={handleChange}
-          className={`form-input ${errors.year_of_study ? 'border-red-500/70 focus:ring-red-500' : ''}`}
-        >
-          <option value="" disabled>Select your year</option>
-          {YEAR_OPTIONS.map(y => (
-            <option key={y} value={y}>Year {y}</option>
-          ))}
-        </select>
-        {errors.year_of_study && <p className="mt-1 text-red-400 text-xs">{errors.year_of_study}</p>}
-      </div>
-
-      {/* ── Skills TagInput ── */}
-      <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1.5">
-          Skills <span className="text-red-400">*</span>
-          <span className="ml-2 text-slate-500 font-normal text-xs">(type & press Enter or comma)</span>
-        </label>
-        <TagInput tags={skills} onChange={setSkills} />
-        {errors.skills && <p className="mt-1 text-red-400 text-xs">{errors.skills}</p>}
-      </div>
-
-      {/* ── Motivation ── */}
-      <div>
-        <label htmlFor="reg-motivation" className="block text-sm font-medium text-slate-300 mb-1.5">
-          Why do you want to join? <span className="text-red-400">*</span>
-        </label>
-        <textarea
-          id="reg-motivation"
-          name="motivation"
-          value={form.motivation}
-          onChange={handleChange}
-          maxLength={MOTIVATION_MAX}
-          rows={4}
-          placeholder="Tell us what excites you about InnovateFest and what you hope to build..."
-          className={`form-input resize-none ${errors.motivation ? 'border-red-500/70 focus:ring-red-500' : ''}`}
-        />
-        {/* Live character countdown */}
-        <div className="flex justify-between mt-1">
-          {errors.motivation
-            ? <p className="text-red-400 text-xs">{errors.motivation}</p>
-            : <span />
-          }
-          <span className={`text-xs ml-auto ${remaining < 50 ? 'text-yellow-400' : 'text-slate-500'}`}>
-            {remaining} characters remaining
-          </span>
+        {/* Degree */}
+        <div>
+          <label htmlFor="degree" className="label">Degree / Major</label>
+          <input
+            type="text"
+            id="degree"
+            name="degree"
+            value={formData.degree}
+            onChange={handleChange}
+            className="form-input"
+            placeholder="Computer Science"
+            disabled={isSubmitting}
+          />
+          {errors.degree && <p className="text-xs text-red-400 mt-1.5">{errors.degree}</p>}
         </div>
       </div>
 
-      {/* ── Submit ── */}
+      {/* Graduation Year */}
+      <div>
+        <label htmlFor="graduation_year" className="label">Graduation Year</label>
+        <select
+          id="graduation_year"
+          name="graduation_year"
+          value={formData.graduation_year}
+          onChange={handleChange}
+          className="form-input"
+          disabled={isSubmitting}
+        >
+          <option value="">Select Year</option>
+          {[2024, 2025, 2026, 2027, 2028].map(year => (
+            <option key={year} value={year}>{year}</option>
+          ))}
+        </select>
+        {errors.graduation_year && <p className="text-xs text-red-400 mt-1.5">{errors.graduation_year}</p>}
+      </div>
+
+      {/* Skills (Custom Tag Input) */}
+      <div>
+        <label className="label">
+          Skills / Tech Stack
+          <span className="text-xs font-mono text-text-muted ml-1">(Press enter to add)</span>
+        </label>
+        <TagInput 
+          tags={formData.skills} 
+          onChange={(newTags) => {
+            setFormData(prev => ({ ...prev, skills: newTags }))
+            if (errors.skills && newTags.length > 0) setErrors(prev => ({ ...prev, skills: '' }))
+          }}
+          disabled={isSubmitting}
+        />
+        {errors.skills && <p className="text-xs text-red-400 mt-1.5">{errors.skills}</p>}
+      </div>
+
+      {/* Motivation */}
+      <div>
+        <div className="flex justify-between items-end mb-1.5">
+          <label htmlFor="motivation" className="label mb-0">Why do you want to participate?</label>
+          <span className={`text-xs font-mono ${
+            formData.motivation.length < 50 ? 'text-amber-500' : 
+            formData.motivation.length > 500 ? 'text-red-400' : 'text-text-muted'
+          }`}>
+            {formData.motivation.length} / 500
+          </span>
+        </div>
+        <textarea
+          id="motivation"
+          name="motivation"
+          rows="4"
+          value={formData.motivation}
+          onChange={handleChange}
+          className="form-input resize-none"
+          placeholder="Tell us about your hackathon goals, what you want to build, or what you hope to learn... (min 50 chars)"
+          disabled={isSubmitting}
+        />
+        {errors.motivation && <p className="text-xs text-red-400 mt-1.5">{errors.motivation}</p>}
+      </div>
+
+      {/* Submit Button */}
       <button
-        id="reg-submit-btn"
         type="submit"
-        disabled={loading}
-        className="btn-primary w-full py-4 text-base"
+        disabled={isSubmitting}
+        className="btn-primary w-full py-3 text-sm mt-4"
       >
-        {loading ? (
-          <>
-            {/* Spinner */}
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-            </svg>
-            Submitting…
-          </>
-        ) : (
-          'Submit Registration →'
-        )}
+        {isSubmitting ? (
+          <span className="opacity-60">Submitting...</span>
+        ) : 'Submit Application'}
       </button>
+
     </form>
   )
 }
