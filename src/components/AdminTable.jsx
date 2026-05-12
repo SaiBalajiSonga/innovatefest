@@ -1,268 +1,228 @@
 import { useState, useMemo, useEffect } from 'react'
 
+const PER_PAGE = 15
+
+function SortIcon({ active, dir }) {
+  return (
+    <svg
+      width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+      className={`inline ml-1 transition-colors ${active ? 'text-indigo-400' : 'text-white/[0.18]'}`}
+    >
+      {active && dir === 'asc'
+        ? <path d="M6 15l6-6 6 6"/>
+        : <path d="M6 9l6 6 6-6"/>
+      }
+    </svg>
+  )
+}
+
 export default function AdminTable({ data, onToggleStatus, onDelete }) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortConfig, setSortConfig] = useState({ key: 'submitted_at', direction: 'desc' })
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 15
+  const [search,     setSearch]     = useState('')
+  const [sort,       setSort]       = useState({ key: 'submitted_at', dir: 'desc' })
+  const [page,       setPage]       = useState(1)
 
-  // 1. Search Filter
-  const filteredData = useMemo(() => {
-    if (!searchTerm) return data
-    const lowerSearch = searchTerm.toLowerCase()
-    return data.filter(item => 
-      item.full_name.toLowerCase().includes(lowerSearch) ||
-      item.email.toLowerCase().includes(lowerSearch) ||
-      item.college.toLowerCase().includes(lowerSearch)
+  // Reset page when search changes
+  useEffect(() => { setPage(1) }, [search])
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return data
+    const q = search.toLowerCase()
+    return data.filter(r =>
+      r.full_name.toLowerCase().includes(q) ||
+      r.email.toLowerCase().includes(q) ||
+      r.college.toLowerCase().includes(q)
     )
-  }, [data, searchTerm])
+  }, [data, search])
 
-  // 2. Sort Logic
-  const sortedData = useMemo(() => {
-    const sortableItems = [...filteredData]
-    if (sortConfig.key !== null) {
-      sortableItems.sort((a, b) => {
-        let aValue = a[sortConfig.key]
-        let bValue = b[sortConfig.key]
-        
-        // Handle nulls
-        if (aValue === null) return 1
-        if (bValue === null) return -1
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      let av = a[sort.key] ?? ''
+      let bv = b[sort.key] ?? ''
+      if (typeof av === 'string') av = av.toLowerCase()
+      if (typeof bv === 'string') bv = bv.toLowerCase()
+      return sort.dir === 'asc' ? (av < bv ? -1 : av > bv ? 1 : 0) : (av > bv ? -1 : av < bv ? 1 : 0)
+    })
+  }, [filtered, sort])
 
-        // String comparison
-        if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase()
-          bValue = bValue.toLowerCase()
-        }
+  const totalPages  = Math.max(1, Math.ceil(sorted.length / PER_PAGE))
+  const pageData    = useMemo(() => sorted.slice((page - 1) * PER_PAGE, page * PER_PAGE), [sorted, page])
 
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
-        return 0
-      })
-    }
-    return sortableItems
-  }, [filteredData, sortConfig])
-
-  // 3. Pagination Logic
-  const totalPages = Math.max(1, Math.ceil(sortedData.length / itemsPerPage))
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return sortedData.slice(startIndex, startIndex + itemsPerPage)
-  }, [sortedData, currentPage])
-
-  // Reset to page 1 if search changes
-  useEffect(() => { setCurrentPage(1) }, [searchTerm])
-
-  // Handle Sort Click
-  const requestSort = (key) => {
-    let direction = 'asc'
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
-    setSortConfig({ key, direction })
+  const toggleSort = (key) => {
+    setSort(s => s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })
   }
 
-  // Handle CSV Export
-  const exportToCSV = () => {
-    if (sortedData.length === 0) return
-
-    // Get headers from first object
-    const headers = Object.keys(sortedData[0])
-    
-    // Convert array of objects to CSV string
-    const csvContent = [
-      headers.join(','), // Header row
-      ...sortedData.map(row => 
-        headers.map(header => {
-          let cell = row[header] === null ? '' : row[header]
-          // Escape quotes and wrap in quotes if contains comma
-          if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
-            cell = `"${cell.replace(/"/g, '""')}"`
-          }
-          // Stringify arrays (like skills)
-          if (Array.isArray(cell)) {
-            cell = `"${cell.join('; ')}"`
-          }
-          return cell
-        }).join(',')
-      )
-    ].join('\n')
-
-    // Trigger download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `innovatefest-registrations-${new Date().toISOString().split('T')[0]}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  const exportCSV = () => {
+    if (!sorted.length) return
+    const keys = Object.keys(sorted[0])
+    const rows = sorted.map(r => keys.map(k => {
+      let v = r[k] == null ? '' : Array.isArray(r[k]) ? r[k].join('; ') : String(r[k])
+      return v.includes(',') || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v
+    }).join(','))
+    const csv  = [keys.join(','), ...rows].join('\n')
+    const a    = Object.assign(document.createElement('a'), {
+      href:     URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+      download: `registrations-${new Date().toISOString().slice(0,10)}.csv`,
+    })
+    document.body.appendChild(a); a.click(); document.body.removeChild(a)
   }
 
-  // Helper for Sort Indicator
-  const SortIcon = ({ columnKey }) => {
-    const active = sortConfig.key === columnKey
-    return (
-      <svg 
-        className={`w-3 h-3 ml-1 inline transition-colors ${active ? 'text-primary' : 'text-surface-border'}`} 
-        fill="none" viewBox="0 0 24 24" stroke="currentColor"
-      >
-        {active && sortConfig.direction === 'asc' ? (
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-        ) : (
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        )}
-      </svg>
-    )
-  }
+  // ── Column config ──────────────────────────────────────────────────────
+  const COLS = [
+    { label: 'Name',       key: 'full_name',    sortable: true },
+    { label: 'Email',      key: 'email',         sortable: true },
+    { label: 'College',    key: 'college',       sortable: true },
+    { label: 'Year',       key: 'year_of_study', sortable: false },
+    { label: 'Status',     key: 'status',        sortable: true },
+    { label: 'Registered', key: 'submitted_at',  sortable: true },
+    { label: '',           key: null,            sortable: false },
+  ]
 
   return (
-    <div className="space-y-4">
-      
-      {/* Table Controls */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
+    <div>
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 py-3.5 border-b border-white/[0.06]">
         {/* Search */}
-        <div className="relative w-full sm:max-w-xs">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
+        <div className="relative max-w-xs w-full">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
           <input
             type="text"
-            className="form-input text-sm py-2 pl-9"
-            placeholder="Search name, email, college..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search name, email, college…"
+            className="form-input text-[13px] py-1.5 pl-8"
           />
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-4">
-          <span className="text-xs font-mono text-text-muted">
-            {sortedData.length} records
+        <div className="flex items-center gap-3">
+          <span className="text-[12px] font-mono text-text-muted whitespace-nowrap">
+            {sorted.length} result{sorted.length !== 1 ? 's' : ''}
           </span>
-          <button onClick={exportToCSV} className="btn-secondary text-xs py-2 px-4">
+          <button onClick={exportCSV} className="btn-secondary text-[12px] px-3 py-1.5 gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
             Export CSV
           </button>
         </div>
       </div>
 
-      {/* Table Wrapper for Horizontal Scroll */}
-      <div className="overflow-x-auto rounded-lg border border-surface-border bg-surface-1">
-        <table className="min-w-full divide-y divide-surface-border">
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] border-collapse text-[13px]">
           <thead>
-            <tr className="border-b border-surface-border bg-surface-2">
-              {['Full Name', 'Email', 'College', 'Status', 'Date', 'Actions'].map((header, i) => {
-                // Map headers to object keys for sorting
-                const keys = ['full_name', 'email', 'college', 'status', 'submitted_at', null]
-                const key = keys[i]
-                
-                return (
-                  <th 
-                    key={header}
-                    onClick={() => key ? requestSort(key) : null}
-                    className={`px-4 py-3 text-left text-xs font-mono text-text-muted uppercase tracking-wider select-none whitespace-nowrap ${key ? 'cursor-pointer hover:text-text-primary transition-colors' : ''}`}
-                  >
-                    {header} {key && <SortIcon columnKey={key} />}
-                  </th>
-                )
-              })}
+            <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+              {COLS.map(({ label, key, sortable }) => (
+                <th
+                  key={label}
+                  onClick={() => sortable && key && toggleSort(key)}
+                  className={`px-4 py-3 text-left text-[11px] font-mono text-text-muted uppercase tracking-[0.12em] whitespace-nowrap select-none ${
+                    sortable ? 'cursor-pointer hover:text-text-primary transition-colors' : ''
+                  }`}
+                >
+                  {label}
+                  {sortable && key && <SortIcon active={sort.key === key} dir={sort.dir} />}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-surface-border">
-            {paginatedData.length === 0 ? (
+          <tbody className="divide-y divide-white/[0.04]">
+            {pageData.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-sm text-text-muted">
-                  No registrations found.
+                <td colSpan={7} className="px-4 py-16 text-center text-[13px] text-text-muted">
+                  {search ? 'No results match your search.' : 'No registrations yet.'}
                 </td>
               </tr>
-            ) : (
-              paginatedData.map((reg) => (
-                <tr key={reg.id} className="hover:bg-surface-2/40 transition-colors duration-100">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-text-primary">
-                    {reg.full_name}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                    {reg.email}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                    {reg.college}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {reg.status === 'approved' ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-mono bg-emerald-950/60 border border-emerald-900/60 text-emerald-400">
-                        <span className="w-1 h-1 rounded-sm bg-emerald-400" />Approved
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-mono bg-amber-950/60 border border-amber-900/60 text-amber-400">
-                        <span className="w-1 h-1 rounded-sm bg-amber-400" />Pending
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                    {new Date(reg.submitted_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium flex gap-2">
+            ) : pageData.map(reg => (
+              <tr
+                key={reg.id}
+                className="hover:bg-white/[0.025] transition-colors duration-100 group"
+              >
+                <td className="px-4 py-3 font-medium text-text-primary whitespace-nowrap">
+                  {reg.full_name}
+                </td>
+                <td className="px-4 py-3 text-text-secondary whitespace-nowrap">
+                  {reg.email}
+                </td>
+                <td className="px-4 py-3 text-text-secondary whitespace-nowrap">
+                  {reg.college}
+                </td>
+                <td className="px-4 py-3 text-text-muted font-mono whitespace-nowrap">
+                  {reg.year_of_study}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {reg.status === 'approved' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400 flex-shrink-0" />
+                      Approved
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-mono bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                      <span className="w-1 h-1 rounded-full bg-amber-400 flex-shrink-0" />
+                      Pending
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-text-muted font-mono text-[12px] whitespace-nowrap">
+                  {new Date(reg.submitted_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                     {reg.status === 'pending' ? (
-                      <button 
+                      <button
                         onClick={() => onToggleStatus(reg.id, reg.status)}
-                        className="text-xs px-2.5 py-1 rounded-md border border-emerald-900/60 text-emerald-400 hover:bg-emerald-950/60 transition-colors font-mono"
+                        className="text-[11px] font-mono px-2 py-1 rounded-md border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-colors"
                       >
                         Approve
                       </button>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => onToggleStatus(reg.id, reg.status)}
-                        className="text-xs px-2.5 py-1 rounded-md border border-amber-900/60 text-amber-400 hover:bg-amber-950/60 transition-colors font-mono"
+                        className="text-[11px] font-mono px-2 py-1 rounded-md border border-amber-500/25 text-amber-400 hover:bg-amber-500/10 transition-colors"
                       >
                         Revert
                       </button>
                     )}
-                    <button 
+                    <button
                       onClick={() => onDelete(reg.id)}
-                      className="text-xs p-1.5 rounded-md border border-red-900/60 text-red-400 hover:bg-red-950/60 transition-colors"
-                      title="Delete Registration"
+                      title="Delete"
+                      className="p-1.5 rounded-md border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-colors"
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14H6L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4h6v2"/>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/>
                       </svg>
                     </button>
-                  </td>
-                </tr>
-              ))
-            )}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-mono text-text-muted">
-          Page <span className="text-text-primary">{currentPage}</span> of {totalPages}
+      {/* Pagination */}
+      <div className="flex items-center justify-between px-4 py-3 border-t border-white/[0.06]">
+        <span className="text-[12px] font-mono text-text-muted">
+          Page <span className="text-text-primary">{page}</span> of {totalPages}
         </span>
         <div className="flex gap-2">
           <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-50"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="btn-secondary text-[12px] px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Prev
+            ← Prev
           </button>
           <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-50"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="btn-secondary text-[12px] px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Next
+            Next →
           </button>
         </div>
       </div>
-
     </div>
   )
 }
