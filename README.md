@@ -55,7 +55,7 @@ CREATE TABLE registrations (
   full_name     text NOT NULL,
   email         text UNIQUE NOT NULL,
   college       text NOT NULL,
-  year_of_study integer NOT NULL CHECK (year_of_study BETWEEN 1 AND 5),
+  year_of_study text NOT NULL,
   skills        text[] NOT NULL,
   motivation    text NOT NULL CHECK (char_length(motivation) <= 500),
   status        text DEFAULT 'pending' CHECK (status IN ('pending', 'approved')),
@@ -164,7 +164,7 @@ Supabase Auth restricts login to specific domains to prevent spoofing. You must 
 
 While this project is designed for a hackathon of ~500-1000 participants, it can easily scale:
 - **Connection Pooling:** Supabase handles connection pooling automatically via pgBouncer, managing thousands of concurrent database connections seamlessly.
-- **Pagination Strategy:** The admin table currently fetches all rows and paginates on the client. For >10,000 rows, switch to server-side pagination using Supabase's `.range(from, to)` method to minimize payload size.
+- **Pagination & Search Strategy:** The admin table currently fetches up to 500 rows upfront and performs pagination and searching in-memory on the client side. This tradeoff was explicitly chosen for simplicity and instant UI responsiveness at the expected scale of a hackathon (under 1000 participants). For >10,000 rows, this should be transitioned to server-side pagination using Supabase's `.range(from, to)` method and `.ilike()` filters to minimize payload size and improve performance.
 - **Indexing:** If queries slow down as data grows, add indexes in PostgreSQL:
   ```sql
   CREATE INDEX idx_registrations_email ON registrations(email);

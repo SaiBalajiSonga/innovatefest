@@ -7,9 +7,8 @@ export default function RegistrationForm() {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    university: '',
-    degree: '',
-    graduation_year: '',
+    college: '',
+    year_of_study: '',
     skills: [],
     motivation: ''
   })
@@ -21,7 +20,6 @@ export default function RegistrationForm() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    // Clear error when user types
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
@@ -29,9 +27,8 @@ export default function RegistrationForm() {
     const newErrors = {}
     if (!formData.full_name.trim()) newErrors.full_name = 'Full name is required'
     if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Valid email is required'
-    if (!formData.university.trim()) newErrors.university = 'University is required'
-    if (!formData.degree.trim()) newErrors.degree = 'Degree/Major is required'
-    if (!formData.graduation_year) newErrors.graduation_year = 'Graduation year is required'
+    if (!formData.college.trim()) newErrors.college = 'College is required'
+    if (!formData.year_of_study) newErrors.year_of_study = 'Year of study is required'
     if (formData.skills.length === 0) newErrors.skills = 'Add at least one skill'
     
     if (!formData.motivation.trim()) {
@@ -62,9 +59,8 @@ export default function RegistrationForm() {
         .insert([{
           full_name: formData.full_name,
           email: formData.email,
-          university: formData.university,
-          degree: formData.degree,
-          graduation_year: parseInt(formData.graduation_year, 10),
+          college: formData.college,
+          year_of_study: formData.year_of_study,
           skills: formData.skills,
           motivation: formData.motivation
         }])
@@ -107,7 +103,6 @@ export default function RegistrationForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
       
-      {/* Full Name */}
       <div>
         <label htmlFor="full_name" className="label">Full Name</label>
         <input
@@ -123,7 +118,6 @@ export default function RegistrationForm() {
         {errors.full_name && <p className="text-xs text-red-400 mt-1.5">{errors.full_name}</p>}
       </div>
 
-      {/* Email */}
       <div>
         <label htmlFor="email" className="label">Email Address</label>
         <input
@@ -140,62 +134,45 @@ export default function RegistrationForm() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {/* University */}
         <div>
-          <label htmlFor="university" className="label">University / College</label>
+          <label htmlFor="college" className="label">College</label>
           <input
             type="text"
-            id="university"
-            name="university"
-            value={formData.university}
+            id="college"
+            name="college"
+            value={formData.college}
             onChange={handleChange}
             className="form-input"
             placeholder="MIT"
             disabled={isSubmitting}
           />
-          {errors.university && <p className="text-xs text-red-400 mt-1.5">{errors.university}</p>}
+          {errors.college && <p className="text-xs text-red-400 mt-1.5">{errors.college}</p>}
         </div>
 
-        {/* Degree */}
         <div>
-          <label htmlFor="degree" className="label">Degree / Major</label>
-          <input
-            type="text"
-            id="degree"
-            name="degree"
-            value={formData.degree}
+          <label htmlFor="year_of_study" className="label">Year of Study</label>
+          <select
+            id="year_of_study"
+            name="year_of_study"
+            value={formData.year_of_study}
             onChange={handleChange}
             className="form-input"
-            placeholder="Computer Science"
             disabled={isSubmitting}
-          />
-          {errors.degree && <p className="text-xs text-red-400 mt-1.5">{errors.degree}</p>}
+          >
+            <option value="">Select Year</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+            <option value="Postgraduate">Postgraduate</option>
+          </select>
+          {errors.year_of_study && <p className="text-xs text-red-400 mt-1.5">{errors.year_of_study}</p>}
         </div>
       </div>
 
-      {/* Graduation Year */}
-      <div>
-        <label htmlFor="graduation_year" className="label">Graduation Year</label>
-        <select
-          id="graduation_year"
-          name="graduation_year"
-          value={formData.graduation_year}
-          onChange={handleChange}
-          className="form-input"
-          disabled={isSubmitting}
-        >
-          <option value="">Select Year</option>
-          {[2024, 2025, 2026, 2027, 2028].map(year => (
-            <option key={year} value={year}>{year}</option>
-          ))}
-        </select>
-        {errors.graduation_year && <p className="text-xs text-red-400 mt-1.5">{errors.graduation_year}</p>}
-      </div>
-
-      {/* Skills (Custom Tag Input) */}
       <div>
         <label className="label">
-          Skills / Tech Stack
+          Skills / Interests
           <span className="text-xs font-mono text-text-muted ml-1">(Press enter to add)</span>
         </label>
         <TagInput 
@@ -209,10 +186,9 @@ export default function RegistrationForm() {
         {errors.skills && <p className="text-xs text-red-400 mt-1.5">{errors.skills}</p>}
       </div>
 
-      {/* Motivation */}
       <div>
         <div className="flex justify-between items-end mb-1.5">
-          <label htmlFor="motivation" className="label mb-0">Why do you want to participate?</label>
+          <label htmlFor="motivation" className="label mb-0">Short Motivation Statement</label>
           <span className={`text-xs font-mono ${
             formData.motivation.length < 50 ? 'text-amber-500' : 
             formData.motivation.length > 500 ? 'text-red-400' : 'text-text-muted'
@@ -233,15 +209,18 @@ export default function RegistrationForm() {
         {errors.motivation && <p className="text-xs text-red-400 mt-1.5">{errors.motivation}</p>}
       </div>
 
-      {/* Submit Button */}
       <button
         type="submit"
         disabled={isSubmitting}
-        className="btn-primary w-full py-3 text-sm mt-4"
+        className="btn-primary w-full py-3 text-sm mt-4 flex items-center justify-center gap-2"
       >
-        {isSubmitting ? (
-          <span className="opacity-60">Submitting...</span>
-        ) : 'Submit Application'}
+        {isSubmitting && (
+          <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        )}
+        {isSubmitting ? 'Submitting...' : 'Submit Application'}
       </button>
 
     </form>

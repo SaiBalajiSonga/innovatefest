@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 export default function AdminTable({ data, onToggleStatus, onDelete }) {
   const [searchTerm, setSearchTerm] = useState('')
@@ -13,7 +13,7 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
     return data.filter(item => 
       item.full_name.toLowerCase().includes(lowerSearch) ||
       item.email.toLowerCase().includes(lowerSearch) ||
-      item.university.toLowerCase().includes(lowerSearch)
+      item.college.toLowerCase().includes(lowerSearch)
     )
   }, [data, searchTerm])
 
@@ -51,7 +51,7 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
   }, [sortedData, currentPage])
 
   // Reset to page 1 if search changes
-  useMemo(() => { setCurrentPage(1) }, [searchTerm])
+  useEffect(() => { setCurrentPage(1) }, [searchTerm])
 
   // Handle Sort Click
   const requestSort = (key) => {
@@ -132,7 +132,7 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
           <input
             type="text"
             className="form-input text-sm py-2 pl-9"
-            placeholder="Search name, email, university..."
+            placeholder="Search name, email, college..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -154,9 +154,9 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
         <table className="min-w-full divide-y divide-surface-border">
           <thead>
             <tr className="border-b border-surface-border bg-surface-2">
-              {['Full Name', 'Email', 'University', 'Status', 'Date', 'Actions'].map((header, i) => {
+              {['Full Name', 'Email', 'College', 'Status', 'Date', 'Actions'].map((header, i) => {
                 // Map headers to object keys for sorting
-                const keys = ['full_name', 'email', 'university', 'status', 'submitted_at', null]
+                const keys = ['full_name', 'email', 'college', 'status', 'submitted_at', null]
                 const key = keys[i]
                 
                 return (
@@ -188,7 +188,7 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
                     {reg.email}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                    {reg.university}
+                    {reg.college}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {reg.status === 'approved' ? (
