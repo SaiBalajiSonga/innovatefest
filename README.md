@@ -4,6 +4,11 @@ A complete, production-ready hackathon registration portal with a public-facing 
 
 **Live Demo:** https://innovatefest.vercel.app/
 
+### 🔑 Admin Portal Access (For Evaluators)
+- **URL:** [https://innovatefest.vercel.app/admin](https://innovatefest.vercel.app/admin)
+- **Email:** `admin@innovatefest.com`
+- **Password:** `admin123`
+
 ---
 
 ## Tech Stack
@@ -96,9 +101,9 @@ CREATE POLICY "Allow admin to delete"
 2. Click **Add User** → **Create new user**.
 3. Enter:
    - **Email:** `admin@innovatefest.com` (or your preferred admin email)
-   - **Password:** Choose a strong password and save it.
+   - **Password:** `admin123` (or choose a strong password)
 4. Click **Create User**.
-   > *Note: This is the only login that will work at `/admin/login`.*
+   > *Note: This is the only login that will work at `/admin/login`. Evaluators will use `admin@innovatefest.com` / `admin123` as listed at the top of this document.*
 
 ### Step 5: Install Dependencies
 Clone this repository and install the dependencies:
