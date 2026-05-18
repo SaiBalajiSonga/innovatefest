@@ -7,7 +7,7 @@ A complete, production-ready hackathon registration portal with a public-facing 
 ### 🔑 Admin Portal Access (For Evaluators)
 - **URL:** [https://innovatefest.vercel.app/admin](https://innovatefest.vercel.app/admin)
 - **Email:** `admin@innovatefest.com`
-- **Password:** `admin123`
+- **Password:** `Admin123`
 
 ---
 

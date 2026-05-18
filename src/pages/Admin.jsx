@@ -23,7 +23,7 @@ export default function Admin() {
     if (!session) return
     const fetchRegistrations = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const apiUrl = import.meta.env.VITE_API_URL || '/api';
         const res = await fetch(`${apiUrl}/registrations`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
@@ -62,7 +62,7 @@ export default function Admin() {
     const next = current === 'pending' ? 'approved' : 'pending'
     setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: next } : r))
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
       const res = await fetch(`${apiUrl}/registrations/${id}/status`, {
         method: 'PATCH',
         headers: {
@@ -84,7 +84,7 @@ export default function Admin() {
     const prev = [...registrations]
     setRegistrations(p => p.filter(r => r.id !== id))
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
       const res = await fetch(`${apiUrl}/registrations/${id}`, {
         method: 'DELETE',
         headers: {
