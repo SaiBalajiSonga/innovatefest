@@ -2,7 +2,7 @@
 
 A complete, production-ready hackathon registration portal with a public-facing landing page, a secure registration flow, and a protected admin dashboard.
 
-**Live Demo:** https://innovatefestsmp.vercel.app
+**Live Demo:** https://innovatefest.vercel.app/
 
 ---
 
