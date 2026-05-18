@@ -4,14 +4,17 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import { createClient } from '@supabase/supabase-js';
 
-dotenv.config();
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '../.env.local') });
+dotenv.config(); // Also load backend/.env if it exists
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Supabase client setup (using Service Role key if available, otherwise Anon key)
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
   console.error(' Supabase URL or Key missing in backend environment variables.');
