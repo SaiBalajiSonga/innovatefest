@@ -83,7 +83,6 @@ export default function AdminLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="form-input"
-                placeholder="admin@innovatefest.com"
                 disabled={isLoggingIn}
                 autoComplete="email"
               />
@@ -98,7 +97,6 @@ export default function AdminLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="form-input"
-                placeholder="••••••••"
                 disabled={isLoggingIn}
                 autoComplete="current-password"
               />
