@@ -77,7 +77,7 @@ app.post('/api/register', async (req, res) => {
     res.status(201).json({ message: 'Registration successful', data });
   } catch (error) {
     console.error('Registration Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message || error });
   }
 });
 
@@ -93,7 +93,7 @@ app.get('/api/registrations', verifyAdmin, async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error('Fetch Registrations Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message || error });
   }
 });
 
@@ -110,7 +110,7 @@ app.get('/api/registrations/:id', verifyAdmin, async (req, res) => {
     
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message || error });
   }
 });
 
@@ -131,7 +131,7 @@ app.patch('/api/registrations/:id/status', verifyAdmin, async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message || error });
   }
 });
 
@@ -145,7 +145,7 @@ app.delete('/api/registrations/:id', verifyAdmin, async (req, res) => {
     if (error) throw error;
     res.json({ message: 'Registration deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message || error });
   }
 });
 
