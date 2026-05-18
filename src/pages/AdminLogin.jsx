@@ -56,7 +56,7 @@ export default function AdminLogin() {
           <p className="font-display font-bold text-[13px] text-text-primary mb-1">
             Innovate<span className="text-indigo-400">Fest</span>
           </p>
-          <p className="text-[11px] font-mono text-text-muted uppercase tracking-[0.16em]">
+          <p className="text-[12px] font-mono text-text-muted uppercase tracking-[0.16em]">
             Admin Portal
           </p>
         </div>
@@ -69,7 +69,7 @@ export default function AdminLogin() {
               <svg className="flex-shrink-0 mt-0.5 text-red-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              <p className="text-[12px] text-red-400 leading-relaxed">{error}</p>
+              <p className="text-[13px] text-red-400 leading-relaxed">{error}</p>
             </div>
           )}
 
@@ -123,7 +123,7 @@ export default function AdminLogin() {
 
         </div>
 
-        <p className="text-center text-[11px] font-mono text-text-muted mt-4">
+        <p className="text-center text-[12px] font-mono text-text-muted mt-4">
           Authorized personnel only.
         </p>
 

@@ -7,6 +7,8 @@
 
   body {
     @apply bg-surface text-text-primary font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.65;
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.07) 0%, transparent 60%);
   }
@@ -55,15 +57,18 @@
   /* ── Form ───────────────────────────────────────── */
   .form-input {
     @apply w-full bg-white/[0.04] border border-white/[0.08] text-[#f4f4f5] rounded-lg
-           px-3.5 py-2.5 text-sm
+           px-4 py-3 text-[15px] leading-snug
            placeholder:text-[#52525b]
            transition-all duration-150
            focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.06]
            focus:ring-1 focus:ring-indigo-500/25;
+    min-height: 44px;
+    /* Keep native <select> on-theme in dark backgrounds */
+    color-scheme: dark;
   }
 
   .label {
-    @apply block text-xs font-medium text-[#71717a] mb-1.5 tracking-wide;
+    @apply block text-[13px] font-medium text-[#71717a] mb-2 tracking-wide uppercase;
   }
 
   /* ── Layout ─────────────────────────────────────── */
@@ -82,7 +87,7 @@
   }
 
   .section-eyebrow {
-    @apply inline-flex items-center gap-1.5 text-[11px] font-mono text-indigo-400
+    @apply inline-flex items-center gap-1.5 text-[12px] font-mono text-indigo-400
            uppercase tracking-[0.18em];
   }
 }

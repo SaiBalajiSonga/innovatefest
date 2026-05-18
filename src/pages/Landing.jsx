@@ -82,7 +82,7 @@ function Hero() {
           {STATS.map(({ label, value }) => (
             <div key={label} className="py-5 text-center">
               <div className="font-display text-[2.25rem] font-extrabold text-white leading-none">{value}</div>
-              <div className="text-[11px] text-text-muted uppercase tracking-widest mt-2 font-mono">{label}</div>
+              <div className="font-mono text-[12px] text-text-muted uppercase tracking-widest mt-2">{label}</div>
             </div>
           ))}
         </motion.div>
@@ -101,14 +101,14 @@ function About() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }} variants={stagger}
           className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 items-end">
           <div>
-            <motion.p variants={fadeUp} custom={0} className="inline-flex items-center gap-1.5 text-[11px] font-mono text-indigo-400 uppercase tracking-[0.18em] mb-3">
+            <motion.p variants={fadeUp} custom={0} className="inline-flex items-center gap-1.5 text-[12px] font-mono text-indigo-400 uppercase tracking-[0.18em] mb-3">
               <span className="w-4 h-[1px] bg-indigo-500" />About the event
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold text-white leading-tight">
               More than<br />a hackathon.
             </motion.h2>
           </div>
-          <motion.p variants={fadeUp} custom={2} className="text-text-secondary text-[15px] leading-[1.75] lg:pt-2">
+          <motion.p variants={fadeUp} custom={2} className="text-text-secondary text-[15px] leading-[1.7] lg:pt-2">
             InnovateFest is a 36-hour sprint where the most driven student builders, designers, and domain experts converge to solve real problems — with real stakes, real mentors, and real prizes.
           </motion.p>
         </motion.div>
@@ -124,8 +124,8 @@ function About() {
               <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4 group-hover:bg-indigo-500/15 transition-colors duration-150">
                 {icon}
               </div>
-              <h3 className="text-[13px] font-semibold text-white mb-1.5">{title}</h3>
-              <p className="text-[12.5px] text-text-secondary leading-relaxed">{desc}</p>
+              <h3 className="text-[14px] font-semibold text-white mb-1.5">{title}</h3>
+              <p className="text-[14px] text-text-secondary leading-relaxed">{desc}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -153,7 +153,7 @@ function Timeline() {
               Event<br />timeline.
             </motion.h2>
           </div>
-          <motion.p variants={fadeUp} custom={2} className="text-text-secondary text-[15px] leading-[1.75]">
+          <motion.p variants={fadeUp} custom={2} className="text-text-secondary text-[15px] leading-[1.7]">
             From registrations to the closing ceremony — here's how the weekend unfolds. Mark your calendar and show up ready to build.
           </motion.p>
         </motion.div>
@@ -180,18 +180,18 @@ function Timeline() {
                 </div>
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="font-mono text-[11px] text-indigo-400 font-medium">{date}</span>
-                    <span className="text-white/[0.15] text-[10px]">·</span>
-                    <span className="font-mono text-[11px] text-text-muted">{time}</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-mono text-[13px] text-indigo-400 font-medium">{date}</span>
+                    <span className="text-white/[0.15] text-[11px]">·</span>
+                    <span className="font-mono text-[13px] text-text-muted">{time}</span>
                     {isActive && (
-                      <span className="ml-auto text-[10px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
+                      <span className="ml-auto text-[11px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
                         Active
                       </span>
                     )}
                   </div>
-                  <h3 className="text-[13px] font-semibold text-white mb-1">{title}</h3>
-                  <p className="text-[12.5px] text-text-secondary leading-relaxed">{desc}</p>
+                  <h3 className="text-[15px] font-semibold text-white mb-1.5">{title}</h3>
+                  <p className="text-[14px] text-text-secondary leading-relaxed">{desc}</p>
                 </div>
               </motion.div>
             )
@@ -222,11 +222,11 @@ function FAQ() {
             <motion.h2 variants={fadeUp} custom={1} className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold text-white leading-tight mb-4">
               Quick<br />answers.
             </motion.h2>
-            <motion.p variants={fadeUp} custom={2} className="text-[14px] text-text-secondary leading-relaxed mb-6">
+            <motion.p variants={fadeUp} custom={2} className="text-[15px] text-text-secondary leading-[1.7] mb-6">
               Everything you need to know before applying. Still have questions? Email us.
             </motion.p>
             <motion.a variants={fadeUp} custom={3} href="mailto:hello@innovatefest.in"
-              className="inline-flex items-center gap-1.5 text-[13px] text-indigo-400 hover:text-indigo-300 transition-colors group">
+              className="inline-flex items-center gap-1.5 text-[14px] text-indigo-400 hover:text-indigo-300 transition-colors group">
               Contact us
               <svg className="transition-transform group-hover:translate-x-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </motion.a>
@@ -246,7 +246,7 @@ function FAQ() {
                     onClick={() => setOpenIndex(isOpen ? -1 : idx)}
                     className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left group focus-visible:outline-none"
                     aria-expanded={isOpen}>
-                    <span className="text-[13px] font-medium text-white group-hover:text-white transition-colors">{q}</span>
+                    <span className="text-[15px] font-medium text-white group-hover:text-white transition-colors">{q}</span>
                     <span className={`flex-shrink-0 w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-200 ${
                       isOpen ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-400' : 'border-white/[0.1] text-text-muted'
                     }`}>
@@ -257,7 +257,7 @@ function FAQ() {
                     </span>
                   </button>
                   <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isOpen ? 'max-h-40' : 'max-h-0'}`}>
-                    <p className="text-[13px] text-text-secondary leading-relaxed px-5 pb-5">{a}</p>
+                    <p className="text-[14px] text-text-secondary leading-[1.7] px-5 pb-5">{a}</p>
                   </div>
                 </motion.div>
               )
@@ -279,7 +279,7 @@ function Footer() {
             <div className="font-display font-bold text-[13px] text-white mb-1.5">
               Innovate<span className="text-indigo-400">Fest</span>
             </div>
-            <p className="text-[11px] font-mono text-text-muted leading-relaxed">
+            <p className="text-[12px] font-mono text-text-muted leading-relaxed">
               © 2026 InnovateFest. Built in India — by students, for students.
             </p>
           </div>
@@ -297,7 +297,7 @@ function Footer() {
             </div>
             <div className="flex gap-4">
               {['Code of Conduct', 'Privacy'].map(l => (
-                <a key={l} href="#" className="text-[12px] text-text-muted hover:text-white transition-colors">{l}</a>
+                <a key={l} href="#" className="text-[13px] text-text-muted hover:text-white transition-colors">{l}</a>
               ))}
             </div>
           </div>
