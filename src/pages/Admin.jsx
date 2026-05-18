@@ -21,16 +21,24 @@ export default function Admin() {
 
   useEffect(() => {
     if (!session) return
-    supabase
-      .from('registrations')
-      .select('*')
-      .order('submitted_at', { ascending: false })
-      .limit(500)
-      .then(({ data, error }) => {
-        if (error) { toast.error('Failed to load registrations'); return }
-        setRegistrations(data || [])
-        setIsLoading(false)
-      })
+    const fetchRegistrations = async () => {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${apiUrl}/registrations`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
+        if (!res.ok) throw new Error('Failed to load registrations');
+        const data = await res.json();
+        setRegistrations(data || []);
+      } catch (error) {
+        toast.error('Failed to load registrations');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRegistrations();
   }, [session])
 
   useEffect(() => {
@@ -53,12 +61,21 @@ export default function Admin() {
   const toggleStatus = async (id, current) => {
     const next = current === 'pending' ? 'approved' : 'pending'
     setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: next } : r))
-    const { error } = await supabase.from('registrations').update({ status: next }).eq('id', id)
-    if (error) {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/registrations/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ status: next })
+      });
+      if (!res.ok) throw new Error('Update failed');
+      toast.success(`Marked as ${next}`)
+    } catch (error) {
       toast.error('Update failed')
       setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: current } : r))
-    } else {
-      toast.success(`Marked as ${next}`)
     }
   }
 
@@ -66,12 +83,19 @@ export default function Admin() {
     if (!window.confirm('Delete this registration? This cannot be undone.')) return
     const prev = [...registrations]
     setRegistrations(p => p.filter(r => r.id !== id))
-    const { error } = await supabase.from('registrations').delete().eq('id', id)
-    if (error) {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/registrations/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      if (!res.ok) throw new Error('Delete failed');
+      toast.success('Deleted')
+    } catch (error) {
       toast.error('Delete failed')
       setRegistrations(prev)
-    } else {
-      toast.success('Deleted')
     }
   }
 
@@ -104,11 +128,11 @@ export default function Admin() {
               Innovate<span className="text-indigo-400">Fest</span>
             </span>
             <span className="hidden sm:inline text-white/[0.12] text-xs">·</span>
-            <span className="hidden sm:inline text-[12px] font-mono text-text-muted">Admin</span>
+            <span className="hidden sm:inline text-[13px] font-mono text-text-muted">Admin</span>
           </div>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 text-[12px] text-text-muted hover:text-text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-white/[0.05] border border-transparent hover:border-white/[0.07]"
+            className="inline-flex items-center gap-1.5 text-[13px] text-text-muted hover:text-text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-white/[0.05] border border-transparent hover:border-white/[0.07]"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -129,7 +153,7 @@ export default function Admin() {
           <h1 className="font-display text-xl font-extrabold text-text-primary mb-1">
             Registrations
           </h1>
-          <p className="text-[13px] text-text-muted font-mono mb-6">
+          <p className="text-[14px] text-text-muted font-mono mb-6">
             InnovateFest 2026 · May 25–27
           </p>
 
@@ -147,7 +171,7 @@ export default function Admin() {
                 <span className="font-display font-bold text-base text-inherit leading-none">
                   {isLoading ? '—' : value}
                 </span>
-                <span className="text-[12px] font-mono opacity-70">{label}</span>
+                <span className="text-[13px] font-mono opacity-70">{label}</span>
               </div>
             ))}
           </div>
@@ -166,7 +190,7 @@ export default function Admin() {
                 <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
                 <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
-              <span className="text-[12px] font-mono">Loading registrations…</span>
+              <span className="text-[13px] font-mono">Loading registrations…</span>
             </div>
           ) : (
             <AdminTable
