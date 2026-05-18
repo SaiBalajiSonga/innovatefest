@@ -18,16 +18,19 @@ export default function TagInput({ tags, onChange, disabled }) {
       {tags.map((tag, i) => (
         <span
           key={i}
-          className="inline-flex items-center gap-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-mono px-2 py-0.5 rounded-md"
+          className="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-medium px-2.5 py-1 rounded-md"
         >
           {tag}
           <button
             type="button"
             onClick={() => onChange(tags.filter((_, idx) => idx !== i))}
-            className="text-indigo-400/60 hover:text-indigo-300 transition-colors leading-none focus:outline-none"
+            className="text-indigo-400/60 hover:text-indigo-300 transition-colors leading-none focus:outline-none ml-0.5"
             aria-label={`Remove ${tag}`}
           >
-            ×
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </span>
       ))}
@@ -35,8 +38,7 @@ export default function TagInput({ tags, onChange, disabled }) {
         type="text"
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-text-primary placeholder:text-text-muted text-sm py-0.5"
-        placeholder={tags.length === 0 ? 'React, Python, Design…' : 'Add more…'}
+        className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-text-primary placeholder:text-text-muted text-sm py-1"
       />
     </div>
   )

@@ -1,0 +1,153 @@
+/**
+ * formOptions.js
+ * Centralised data for all registration form dropdowns.
+ * Edit this file to add/remove options — no component code changes needed.
+ */
+
+// ── Degree / Program types ─────────────────────────────────────────────────
+export const DEGREE_PROGRAMS = [
+  'Undergraduate (UG)',
+  'Postgraduate (PG)',
+]
+
+
+// ── Indian colleges / Universities ─────────────────────────────────────────
+export const COLLEGES = [
+  // IITs
+  'Indian Institute of Technology Bombay (IIT Bombay)',
+  'Indian Institute of Technology Delhi (IIT Delhi)',
+  'Indian Institute of Technology Madras (IIT Madras)',
+  'Indian Institute of Technology Kanpur (IIT Kanpur)',
+  'Indian Institute of Technology Kharagpur (IIT Kharagpur)',
+  'Indian Institute of Technology Roorkee (IIT Roorkee)',
+  'Indian Institute of Technology Guwahati (IIT Guwahati)',
+  'Indian Institute of Technology Hyderabad (IIT Hyderabad)',
+  'Indian Institute of Technology Indore (IIT Indore)',
+  'Indian Institute of Technology Jodhpur (IIT Jodhpur)',
+  'Indian Institute of Technology Mandi (IIT Mandi)',
+  'Indian Institute of Technology Patna (IIT Patna)',
+  'Indian Institute of Technology Ropar (IIT Ropar)',
+  'Indian Institute of Technology Bhubaneswar (IIT Bhubaneswar)',
+  'Indian Institute of Technology Gandhinagar (IIT Gandhinagar)',
+  'Indian Institute of Technology Tirupati (IIT Tirupati)',
+  'Indian Institute of Technology Palakkad (IIT Palakkad)',
+  'Indian Institute of Technology Jammu (IIT Jammu)',
+  'Indian Institute of Technology Dharwad (IIT Dharwad)',
+  'Indian Institute of Technology Bhilai (IIT Bhilai)',
+  'Indian Institute of Technology Varanasi (IIT BHU)',
+  'Indian Institute of Technology (ISM) Dhanbad',
+  // IISc
+  'Indian Institute of Science Bangalore (IISc)',
+  // NITs
+  'National Institute of Technology Trichy (NIT Trichy)',
+  'National Institute of Technology Warangal (NIT Warangal)',
+  'National Institute of Technology Surathkal (NITK)',
+  'National Institute of Technology Calicut (NIT Calicut)',
+  'National Institute of Technology Rourkela (NIT Rourkela)',
+  'National Institute of Technology Allahabad (MNNIT)',
+  'National Institute of Technology Jaipur (MNIT Jaipur)',
+  'National Institute of Technology Nagpur (VNIT)',
+  'National Institute of Technology Durgapur (NIT Durgapur)',
+  'National Institute of Technology Silchar (NIT Silchar)',
+  'National Institute of Technology Patna (NIT Patna)',
+  'National Institute of Technology Bhopal (MANIT)',
+  'National Institute of Technology Hamirpur (NIT Hamirpur)',
+  'National Institute of Technology Kurukshetra (NIT Kurukshetra)',
+  'National Institute of Technology Agartala (NIT Agartala)',
+  'National Institute of Technology Goa (NIT Goa)',
+  'National Institute of Technology Manipur',
+  'National Institute of Technology Meghalaya',
+  'National Institute of Technology Mizoram',
+  'National Institute of Technology Nagaland',
+  'National Institute of Technology Puducherry',
+  'National Institute of Technology Sikkim',
+  'National Institute of Technology Srinagar',
+  'National Institute of Technology Uttarakhand',
+  // BITS
+  'BITS Pilani',
+  'BITS Pilani — Goa Campus',
+  'BITS Pilani — Hyderabad Campus',
+  'BITS Pilani — Dubai Campus',
+  // IIITs
+  'International Institute of Information Technology Hyderabad (IIIT-H)',
+  'International Institute of Information Technology Bangalore (IIIT-B)',
+  'Indian Institute of Information Technology Allahabad (IIIT Allahabad)',
+  'Indian Institute of Information Technology Design & Manufacturing Kancheepuram',
+  'Indian Institute of Information Technology Gwalior',
+  'Indian Institute of Information Technology Jabalpur',
+  'Indian Institute of Information Technology Vadodara',
+  'Indian Institute of Information Technology Lucknow',
+  'Indian Institute of Information Technology Pune',
+  'Indian Institute of Information Technology Kottayam',
+  'Indian Institute of Information Technology Sri City',
+  'Indian Institute of Information Technology Una',
+  'Indian Institute of Information Technology Ranchi',
+  'Indian Institute of Information Technology Nagpur',
+  'Indian Institute of Information Technology Tiruchirappalli',
+  // Top Deemed / Private
+  'Vellore Institute of Technology (VIT Vellore)',
+  'VIT Chennai',
+  'VIT Bhopal',
+  'VIT AP',
+  'Manipal Institute of Technology (MIT Manipal)',
+  'SRM Institute of Science and Technology',
+  'Amrita Vishwa Vidyapeetham',
+  'Anna University',
+  'Jadavpur University',
+  'Delhi Technological University (DTU)',
+  'Netaji Subhas University of Technology (NSUT)',
+  'Indraprastha Institute of Information Technology Delhi (IIIT Delhi)',
+  'Thapar Institute of Engineering and Technology',
+  'PSG College of Technology',
+  'College of Engineering Pune (COEP)',
+  'PES University',
+  'RV College of Engineering',
+  'BMS College of Engineering',
+  'Nirma University',
+  'Symbiosis Institute of Technology',
+  'Kalinga Institute of Industrial Technology (KIIT)',
+  'SRM University AP',
+  'Shiv Nadar University',
+  'Ashoka University',
+  'Chandigarh University',
+  'Lovely Professional University (LPU)',
+  'Pune Institute of Computer Technology (PICT)',
+  'Osmania University',
+  'University of Hyderabad',
+  'Presidency University Bangalore',
+  'Christ University',
+  'Ramaiah Institute of Technology',
+  'National Institute of Fashion Technology (NIFT)',
+  'Jawaharlal Nehru University (JNU)',
+  'University of Delhi',
+  'Mumbai University',
+  'Savitribai Phule Pune University (SPPU)',
+  'Banaras Hindu University (BHU)',
+  'Aligarh Muslim University (AMU)',
+  'Hyderabad Central University',
+  'University of Mysore',
+  'Mahatma Gandhi University',
+  // IIMs
+  'Indian Institute of Management Ahmedabad (IIM-A)',
+  'Indian Institute of Management Bangalore (IIM-B)',
+  'Indian Institute of Management Calcutta (IIM-C)',
+  'Indian Institute of Management Lucknow (IIM-L)',
+  'Indian Institute of Management Kozhikode (IIM-K)',
+  'Indian Institute of Management Indore (IIM-I)',
+]
+
+// ── Year of study options (Dynamic based on degree) ────────────────────────
+export function getYearsForDegree(degree) {
+  const d = (degree || '').toLowerCase()
+
+  if (d.includes('pg') || d.includes('postgraduate')) {
+    return ['1st Year', '2nd Year', '3rd Year']
+  }
+
+  if (d.includes('ug') || d.includes('undergraduate')) {
+    return ['1st Year', '2nd Year', '3rd Year', '4th Year']
+  }
+
+  // Default fallback
+  return ['1st Year', '2nd Year', '3rd Year', '4th Year']
+}
