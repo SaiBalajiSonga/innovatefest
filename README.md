@@ -7,7 +7,7 @@ A complete, production-ready hackathon registration portal with a public-facing 
 ### 🔑 Admin Portal Access (For Evaluators)
 - **URL:** [https://innovatefest.vercel.app/admin](https://innovatefest.vercel.app/admin)
 - **Email:** `admin@innovatefest.com`
-- **Password:** `Admin123`
+- **Password:** `Admin@123`
 
 ---
 
@@ -16,14 +16,27 @@ A complete, production-ready hackathon registration portal with a public-facing 
 - **Frontend:** React (Vite) + Tailwind CSS
   - *Why Vite?* Much faster HMR and build times than Create React App.
   - *Why Tailwind?* Rapid styling without switching between CSS files, highly customizable, and tree-shakes unused styles for a tiny production bundle.
-- **Backend API:** Node.js + Express
-  - *Why Express?* It's lightweight, unopinionated, and perfectly suited for building simple RESTful APIs quickly while being easy to integrate with custom middleware (like JWT verification).
+- **Backend API:** Node.js + Express (Local) & Vercel Serverless Functions
+  - *Why Express / Serverless?* It's lightweight, unopinionated, and perfectly suited for building simple RESTful APIs quickly. In production, Vercel seamlessly serves the API via serverless functions.
 - **Database:** Supabase (PostgreSQL)
   - *Why SQL (PostgreSQL)?* Registration data is highly structured (users have distinct properties like name, email, college) and SQL enforces a strict schema ensuring data integrity. It's also ideal for preventing duplicate registrations (via UNIQUE constraints) out of the box, unlike NoSQL which typically requires manual indexing/checks.
 - **Authentication:** Supabase Auth (JWT)
   - *Why?* Built-in, secure, and seamlessly integrates with Row Level Security (RLS) policies.
 - **Realtime:** Supabase Realtime
   - *Why?* Allows the admin dashboard to update instantly when a new registration is submitted.
+
+---
+
+## Edge Cases & Requirement Fulfillment
+
+As per the project requirements, this application robustly handles edge cases, data validation, and security:
+
+- **Duplicate Registrations:** The PostgreSQL database enforces a strict `UNIQUE` constraint on the `email` column. If a user attempts to register with an already registered email, the API catches the specific Postgres error code (`23505`) and gracefully returns a `409 Conflict` status with a user-friendly error message, completely preventing duplicate sign-ups.
+- **Data Validation:** 
+  - **Frontend:** The React form enforces required fields and proper email formatting before a network request is even made.
+  - **Backend:** The serverless API strictly validates the incoming payload. If any required field is missing, it instantly returns a `400 Bad Request`. It also enforces a strict character limit check on the `motivation` field (must be between 50 and 500 characters).
+- **Security & Authorization (RLS):** Supabase Row-Level Security (RLS) is configured to allow anyone to `INSERT` a registration, but it strictly requires a verified `authenticated` admin JWT token to `SELECT`, `UPDATE`, or `DELETE` any records. This completely isolates user data and prevents any participant from querying other people's data.
+- **Admin Search & Sorting:** The dashboard securely fetches all registrations and implements comprehensive filtering (by name, college, skills) and sorting (by submission time) directly on the client side, fulfilling all dashboard management requirements.
 
 ---
 
@@ -44,10 +57,11 @@ Follow these steps to run the project locally.
 ### Step 2: Get Your Environment Variables
 Once the project is ready:
 1. Go to **Settings (gear icon)** → **API**.
-2. Locate the following two values:
+2. Locate the following three values:
    - **Project URL** (This is your `VITE_SUPABASE_URL`)
    - **anon public key** (This is your `VITE_SUPABASE_ANON_KEY`)
-   > ⚠️ **IMPORTANT:** Do NOT use the `service_role` key. Never expose the service role key to the frontend.
+   - **service_role secret** (This is your `SUPABASE_SERVICE_KEY`)
+   > ⚠️ **IMPORTANT:** Never expose the `service_role` key to the frontend (do not prefix it with `VITE_`). It must only be used in the backend/serverless environment.
 
 ### Step 3: Set Up the Database Table
 1. In the Supabase dashboard, go to the **SQL Editor** (left sidebar).
@@ -100,10 +114,10 @@ CREATE POLICY "Allow admin to delete"
 1. In the Supabase dashboard, go to **Authentication** → **Users**.
 2. Click **Add User** → **Create new user**.
 3. Enter:
-   - **Email:** `admin@innovatefest.com` (or your preferred admin email)
-   - **Password:** `admin123` (or choose a strong password)
+   - **Email:** your preferred admin email
+   - **Password:** choose a strong password
 4. Click **Create User**.
-   > *Note: This is the only login that will work at `/admin/login`. Evaluators will use `admin@innovatefest.com` / `admin123` as listed at the top of this document.*
+   > *Note: This is the only login that will work at `/admin/login`.
 
 ### Step 5: Install Dependencies
 Clone this repository and install the dependencies:
@@ -164,6 +178,7 @@ git push -u origin main
 Before clicking "Deploy", expand the **Environment Variables** section and add:
 - `VITE_SUPABASE_URL` = `https://your-project-id.supabase.co`
 - `VITE_SUPABASE_ANON_KEY` = `your-anon-key-here`
+- `SUPABASE_SERVICE_KEY` = `your-service-role-key-here` (Required for the Vercel serverless API backend to securely bypass RLS for admin tasks)
 
 ### Step 4: Deploy
 Click **Deploy**. Once finished, Vercel will provide a live URL (e.g., `https://innovatefest.vercel.app`).
