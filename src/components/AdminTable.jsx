@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -369,7 +369,7 @@ function FilterChip({ label, onRemove }) {
 
 // ── Main Export ────────────────────────────────────────────────────────────
 
-export default function AdminTable({ data, onUpdateStatus, onDelete }) {
+const AdminTable = forwardRef(({ data, onUpdateStatus, onDelete }, ref) => {
   const [search,        setSearch]        = useState('')
   const [statusFilter,  setStatusFilter]  = useState('all')
   const [collegeFilter, setCollegeFilter] = useState('')
@@ -440,7 +440,6 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
   const rejected = data.filter(r => r.status === 'rejected').length
   const pending  = total - approved - rejected
 
-  // CSV Export
   const exportCSV = () => {
     if (!filtered.length) return
     const keys   = ['full_name', 'email', 'college', 'year_of_study', 'skills', 'motivation', 'status', 'submitted_at']
@@ -456,6 +455,10 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
     })
     document.body.appendChild(a); a.click(); document.body.removeChild(a)
   }
+
+  useImperativeHandle(ref, () => ({
+    exportCSV
+  }), [filtered])
 
   const clearAllFilters = () => {
     setSearch(''); setStatusFilter('all')
@@ -577,15 +580,6 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
                   <IconLayoutExpanded />
                 </button>
               </div>
-
-              <button
-                type="button"
-                onClick={exportCSV}
-                title="Export CSV"
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.05] transition-colors"
-              >
-                <IconDownload />
-              </button>
               {anyActive && (
                 <button
                   type="button"
@@ -632,4 +626,6 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
       </div>
     </div>
   )
-}
+})
+
+export default AdminTable

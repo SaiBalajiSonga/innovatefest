@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -14,6 +14,7 @@ export default function Admin() {
 
   const [registrations, setRegistrations] = useState([])
   const [isLoading, setIsLoading]         = useState(true)
+  const tableRef                          = useRef(null)
 
   useEffect(() => {
     if (!authLoading && !session) navigate('/admin/login')
@@ -171,12 +172,26 @@ export default function Admin() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease, delay: 0.05 }}
         >
-          <h1 className="font-display text-xl font-extrabold text-text-primary mb-1">
-            Registrations
-          </h1>
-          <p className="text-[14px] text-text-muted font-mono mb-6">
-            InnovateFest 2026 · May 25–27
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="font-display text-xl font-extrabold text-text-primary mb-1">
+                Registrations
+              </h1>
+              <p className="text-[14px] text-text-muted font-mono">
+                InnovateFest 2026 · May 25–27
+              </p>
+            </div>
+            
+            <button
+              onClick={() => tableRef.current?.exportCSV()}
+              className="inline-flex items-center gap-2 self-start sm:self-center text-[13px] font-mono font-medium text-indigo-300 hover:text-indigo-200 bg-indigo-500/[0.08] hover:bg-indigo-500/[0.12] border border-indigo-500/20 active:scale-[0.98] transition-all duration-150 px-4 py-2 rounded-xl"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              Export to CSV
+            </button>
+          </div>
 
           {/* Metric chips */}
           <div className="flex flex-wrap gap-3">
@@ -214,6 +229,7 @@ export default function Admin() {
             </div>
           ) : (
             <AdminTable
+              ref={tableRef}
               data={registrations}
               onUpdateStatus={updateStatus}
               onDelete={deleteRegistration}
