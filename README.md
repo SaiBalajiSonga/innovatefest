@@ -111,14 +111,30 @@ CREATE POLICY "Allow admin to delete"
 ```
 3. Click **Run**. You should see a success message. (Verify by checking the "Table Editor").
 
-### Step 4: Create the Admin User
+### Step 4: Create & Promote the Admin User
 1. In the Supabase dashboard, go to **Authentication** → **Users**.
 2. Click **Add User** → **Create new user**.
 3. Enter:
-   - **Email:** your preferred admin email
+   - **Email:** your preferred admin email (e.g. `admin@innovatefest.com`)
    - **Password:** choose a strong password
 4. Click **Create User**.
-   > *Note: This is the only login that will work at `/admin/login`.
+5. **Promote the User to Admin (Securely setting `app_metadata.role`):**
+   
+   To prevent self-promotion, the dashboard requires `app_metadata.role` to be set to `'admin'`. This field is only writable server-side. You can promote your user in one of two ways:
+
+   **Method A: Using the CLI Script (Recommended)**
+   Ensure you have completed **Step 6** (setting up `.env` files with your `SUPABASE_SERVICE_KEY`), then run:
+   ```bash
+   node backend/promote-user.js admin@innovatefest.com
+   ```
+
+   **Method B: Via Supabase SQL Editor**
+   Go to the **SQL Editor** in your Supabase dashboard, paste and run the following query:
+   ```sql
+   UPDATE auth.users 
+   SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb 
+   WHERE email = 'admin@innovatefest.com';
+   ```
 
 ### Step 5: Install Dependencies
 Clone this repository and install the dependencies:

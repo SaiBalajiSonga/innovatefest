@@ -22,7 +22,16 @@ export default function Admin() {
   }, [registrations])
 
   useEffect(() => {
-    if (!authLoading && !session) navigate('/admin/login')
+    if (!authLoading) {
+      if (!session) {
+        navigate('/admin/login')
+      } else if (session.user?.app_metadata?.role !== 'admin') {
+        toast.error('Access denied: You are not authorized as an administrator.')
+        supabase.auth.signOut().then(() => {
+          navigate('/admin/login')
+        })
+      }
+    }
   }, [session, authLoading, navigate])
 
   useEffect(() => {

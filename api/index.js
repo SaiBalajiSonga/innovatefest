@@ -34,6 +34,11 @@ const verifyAdmin = async (req, res, next) => {
     return res.status(401).json({ error: 'Unauthorized', details: error?.message });
   }
 
+  // Secure Role Validation: Verify role inside app_metadata (only server-writable) to prevent client-side self-promotion
+  if (user.app_metadata?.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden: Admin access required' });
+  }
+
   req.user = user;
   next();
 };
