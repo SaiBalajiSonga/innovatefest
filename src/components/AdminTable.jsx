@@ -48,6 +48,16 @@ const IconX = () => (
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 )
+const IconLayoutCompact = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="5" width="18" height="4" rx="1"/><rect x="3" y="11" width="18" height="4" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/>
+  </svg>
+)
+const IconLayoutExpanded = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="8" rx="1"/><rect x="3" y="13" width="18" height="8" rx="1"/>
+  </svg>
+)
 
 // ── Status Badge ───────────────────────────────────────────────────────────
 
@@ -170,10 +180,11 @@ function SkillCombobox({ value, onChange, allSkills }) {
 
 // ── Registration Card (left panel) ────────────────────────────────────────
 
-function RegCard({ reg, isSelected, onClick }) {
-  const skills = Array.isArray(reg.skills) ? reg.skills : []
-  const shown  = skills.slice(0, 3)
-  const extra  = skills.length - shown.length
+function RegCard({ reg, isSelected, onClick, cardMode }) {
+  const skills   = Array.isArray(reg.skills) ? reg.skills : []
+  const shown    = skills.slice(0, 3)
+  const extra    = skills.length - shown.length
+  const expanded = cardMode === 'expanded' || isSelected
 
   return (
     <button
@@ -195,11 +206,9 @@ function RegCard({ reg, isSelected, onClick }) {
         <StatusBadge status={reg.status} />
       </div>
 
-      {/* Expandable details — collapsed by default, expands on hover or when selected */}
+      {/* Details — shown always in expanded mode, or when card is selected */}
       <div className={`overflow-hidden transition-all duration-200 ease-in-out ${
-        isSelected
-          ? 'max-h-44 opacity-100 mt-2.5'
-          : 'max-h-0 opacity-0 group-hover:max-h-44 group-hover:opacity-100 group-hover:mt-2.5'
+        expanded ? 'max-h-44 opacity-100 mt-2.5' : 'max-h-0 opacity-0'
       }`}>
         <p className="text-[12px] text-indigo-300/60 font-mono truncate mb-1.5">{reg.email}</p>
         <p className="text-[12px] text-text-muted truncate mb-2" title={reg.college}>
@@ -368,6 +377,7 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
   const [skillFilter,   setSkillFilter]   = useState('')
   const [selected,      setSelected]      = useState(null)
   const [showFilters,   setShowFilters]   = useState(false)
+  const [cardMode,      setCardMode]      = useState('compact') // 'compact' | 'expanded'
 
   // Unique options derived from data
   const colleges  = useMemo(() => [...new Set(data.map(r => r.college).filter(Boolean))].sort(), [data])
@@ -536,7 +546,7 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
             </div>
           )}
 
-          {/* Stats row */}
+          {/* Stats + card mode toggle row */}
           <div className="flex items-center gap-2 px-0.5">
             <span className="text-[12px] font-mono text-text-muted">{total} total</span>
             <span className="text-white/10">·</span>
@@ -545,14 +555,43 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
             <span className="text-[12px] font-mono text-amber-500">{pending} pending</span>
             <span className="text-white/10">·</span>
             <span className="text-[12px] font-mono text-red-400">{rejected} ✗</span>
-            <button onClick={exportCSV} title="Export CSV" className="ml-auto p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.05] transition-colors">
-              <IconDownload />
-            </button>
-            {anyActive && (
-              <button onClick={clearAllFilters} title="Clear all filters" className="p-1.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/[0.07] transition-colors">
-                <IconX />
+
+            <div className="ml-auto flex items-center gap-1">
+              {/* Card view mode toggle */}
+              <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
+                <button
+                  onClick={() => setCardMode('compact')}
+                  title="Compact cards"
+                  className={`p-1.5 transition-colors ${
+                    cardMode === 'compact'
+                      ? 'bg-indigo-500/20 text-indigo-300'
+                      : 'text-text-muted hover:text-text-secondary hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <IconLayoutCompact />
+                </button>
+                <button
+                  onClick={() => setCardMode('expanded')}
+                  title="Detailed cards"
+                  className={`p-1.5 transition-colors border-l border-white/[0.08] ${
+                    cardMode === 'expanded'
+                      ? 'bg-indigo-500/20 text-indigo-300'
+                      : 'text-text-muted hover:text-text-secondary hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <IconLayoutExpanded />
+                </button>
+              </div>
+
+              <button onClick={exportCSV} title="Export CSV" className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.05] transition-colors">
+                <IconDownload />
               </button>
-            )}
+              {anyActive && (
+                <button onClick={clearAllFilters} title="Clear all filters" className="p-1.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/[0.07] transition-colors">
+                  <IconX />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -568,6 +607,7 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
                   key={reg.id} reg={reg}
                   isSelected={selected?.id === reg.id}
                   onClick={() => setSelected(reg)}
+                  cardMode={cardMode}
                 />
               ))
           }
