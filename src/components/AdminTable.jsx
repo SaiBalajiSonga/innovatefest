@@ -53,13 +53,17 @@ const IconX = () => (
 
 function StatusBadge({ status, size = 'sm' }) {
   const cls = size === 'lg' ? 'px-3 py-1.5 text-xs' : 'px-2 py-0.5 text-[11px]'
-  return status === 'approved'
-    ? <span className={`inline-flex items-center gap-1.5 rounded-md font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 ${cls}`}>
+  if (status === 'approved')
+    return <span className={`inline-flex items-center gap-1.5 rounded-md font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 ${cls}`}>
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />Approved
       </span>
-    : <span className={`inline-flex items-center gap-1.5 rounded-md font-mono bg-amber-500/10 border border-amber-500/20 text-amber-400 ${cls}`}>
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />Pending
+  if (status === 'rejected')
+    return <span className={`inline-flex items-center gap-1.5 rounded-md font-mono bg-red-500/10 border border-red-500/20 text-red-400 ${cls}`}>
+        <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />Rejected
       </span>
+  return <span className={`inline-flex items-center gap-1.5 rounded-md font-mono bg-amber-500/10 border border-amber-500/20 text-amber-400 ${cls}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />Pending
+    </span>
 }
 
 // ── Compact native select styled for dark theme ────────────────────────────
@@ -225,7 +229,7 @@ function RegCard({ reg, isSelected, onClick }) {
 
 // ── Detail View (right panel) ─────────────────────────────────────────────
 
-function DetailView({ reg, onToggleStatus, onDelete }) {
+function DetailView({ reg, onUpdateStatus, onDelete }) {
   if (!reg) return (
     <div className="h-full flex flex-col items-center justify-center text-center px-8 select-none">
       <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center mb-4 text-text-muted text-lg">→</div>
@@ -236,7 +240,9 @@ function DetailView({ reg, onToggleStatus, onDelete }) {
   )
 
   const skills     = Array.isArray(reg.skills) ? reg.skills : []
+  const isPending  = reg.status === 'pending'
   const isApproved = reg.status === 'approved'
+  const isRejected = reg.status === 'rejected'
 
   return (
     <div className="h-full flex flex-col">
@@ -287,23 +293,41 @@ function DetailView({ reg, onToggleStatus, onDelete }) {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-7 py-4 border-t border-white/[0.07] shrink-0 flex gap-3">
-        <button
-          onClick={() => onToggleStatus(reg.id, reg.status)}
-          className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-xl text-[13px] font-semibold border transition-all duration-150 active:scale-[0.98] ${
-            isApproved
-              ? 'border-amber-500/25 text-amber-400 hover:bg-amber-500/10'
-              : 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
-          }`}
-        >
-          {isApproved ? <>↺ Revert to Pending</> : <><IconCheck /> Approve</>}
-        </button>
+      {/* Footer — approve / reject / revert + delete */}
+      <div className="px-7 py-4 border-t border-white/[0.07] shrink-0 flex gap-2">
+        {/* Approve */}
+        {!isApproved && (
+          <button
+            onClick={() => onUpdateStatus(reg.id, 'approved')}
+            className="flex items-center gap-1.5 flex-1 justify-center py-2.5 rounded-xl text-[13px] font-semibold border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 active:scale-[0.98] transition-all duration-150"
+          >
+            <IconCheck /> Approve
+          </button>
+        )}
+        {/* Reject */}
+        {!isRejected && (
+          <button
+            onClick={() => onUpdateStatus(reg.id, 'rejected')}
+            className="flex items-center gap-1.5 flex-1 justify-center py-2.5 rounded-xl text-[13px] font-semibold border border-red-500/25 text-red-400 hover:bg-red-500/10 active:scale-[0.98] transition-all duration-150"
+          >
+            <IconX /> Reject
+          </button>
+        )}
+        {/* Revert to pending */}
+        {(isApproved || isRejected) && (
+          <button
+            onClick={() => onUpdateStatus(reg.id, 'pending')}
+            className="flex items-center gap-1.5 justify-center py-2.5 px-3 rounded-xl text-[13px] font-semibold border border-amber-500/25 text-amber-400 hover:bg-amber-500/10 active:scale-[0.98] transition-all duration-150"
+          >
+            ↺ Pending
+          </button>
+        )}
+        {/* Delete */}
         <button
           onClick={() => onDelete(reg.id)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold border border-red-500/20 text-red-400 hover:bg-red-500/10 active:scale-[0.98] transition-all duration-150"
+          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold border border-white/[0.08] text-text-muted hover:border-red-500/20 hover:text-red-400 hover:bg-red-500/[0.07] active:scale-[0.98] transition-all duration-150"
         >
-          <IconTrash /> Delete
+          <IconTrash />
         </button>
       </div>
     </div>
@@ -336,7 +360,7 @@ function FilterChip({ label, onRemove }) {
 
 // ── Main Export ────────────────────────────────────────────────────────────
 
-export default function AdminTable({ data, onToggleStatus, onDelete }) {
+export default function AdminTable({ data, onUpdateStatus, onDelete }) {
   const [search,        setSearch]        = useState('')
   const [statusFilter,  setStatusFilter]  = useState('all')
   const [collegeFilter, setCollegeFilter] = useState('')
@@ -403,7 +427,8 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
   // Stats
   const total    = data.length
   const approved = data.filter(r => r.status === 'approved').length
-  const pending  = total - approved
+  const rejected = data.filter(r => r.status === 'rejected').length
+  const pending  = total - approved - rejected
 
   // CSV Export
   const exportCSV = () => {
@@ -447,12 +472,13 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
 
           {/* Status pills */}
           <div className="flex gap-1.5">
-            {['all', 'pending', 'approved'].map(s => (
+            {['all', 'pending', 'approved', 'rejected'].map(s => (
               <button
                 key={s} onClick={() => setStatusFilter(s)}
                 className={`flex-1 py-1 rounded-lg text-[11px] font-mono transition-all capitalize ${
                   statusFilter === s
                     ? s === 'approved' ? 'bg-emerald-500/15 border border-emerald-500/25 text-emerald-400'
+                    : s === 'rejected' ? 'bg-red-500/15 border border-red-500/25 text-red-400'
                     : s === 'pending'  ? 'bg-amber-500/15 border border-amber-500/25 text-amber-400'
                     : 'bg-indigo-500/15 border border-indigo-500/25 text-indigo-300'
                     : 'bg-white/[0.03] border border-white/[0.07] text-text-muted hover:text-text-secondary'
@@ -517,6 +543,8 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
             <span className="text-[12px] font-mono text-emerald-500">{approved} ✓</span>
             <span className="text-white/10">·</span>
             <span className="text-[12px] font-mono text-amber-500">{pending} pending</span>
+            <span className="text-white/10">·</span>
+            <span className="text-[12px] font-mono text-red-400">{rejected} ✗</span>
             <button onClick={exportCSV} title="Export CSV" className="ml-auto p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.05] transition-colors">
               <IconDownload />
             </button>
@@ -555,7 +583,7 @@ export default function AdminTable({ data, onToggleStatus, onDelete }) {
 
       {/* ── RIGHT PANEL ─────────────────────────────────────── */}
       <div className="flex-1 min-w-0 overflow-hidden">
-        <DetailView reg={selected} onToggleStatus={onToggleStatus} onDelete={handleDelete} />
+        <DetailView reg={selected} onUpdateStatus={onUpdateStatus} onDelete={handleDelete} />
       </div>
     </div>
   )

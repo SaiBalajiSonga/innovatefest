@@ -29,8 +29,8 @@ dist-ssr
 .env.*
 !.env.example
 
-.antigravityignore
-.cursorignore
+#.antigravityignore
+#.cursorignore
 
 Web Nominee Assignment _ SMP 2026-27.pdf
 question.md

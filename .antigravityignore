@@ -1,0 +1,6 @@
+# Block dependencies from flooding the AI context
+node_modules/
+.git/
+dist/
+build/
+.next/

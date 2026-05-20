@@ -58,8 +58,8 @@ export default function Admin() {
     navigate('/admin/login')
   }
 
-  const toggleStatus = async (id, current) => {
-    const next = current === 'pending' ? 'approved' : 'pending'
+  const updateStatus = async (id, next) => {
+    const current = registrations.find(r => r.id === id)?.status || 'pending'
     setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: next } : r))
     try {
       const apiUrl = import.meta.env.VITE_API_URL || '/api';
@@ -104,12 +104,14 @@ export default function Admin() {
   // ── Stats from in-memory data ──────────────────────────────────────────
   const total    = registrations.length
   const approved = registrations.filter(r => r.status === 'approved').length
-  const pending  = total - approved
+  const rejected = registrations.filter(r => r.status === 'rejected').length
+  const pending  = total - approved - rejected
 
   const METRICS = [
     { label: 'Total', value: total },
     { label: 'Approved', value: approved, highlight: true },
     { label: 'Pending', value: pending },
+    { label: 'Rejected', value: rejected },
   ]
 
   return (
@@ -195,7 +197,7 @@ export default function Admin() {
           ) : (
             <AdminTable
               data={registrations}
-              onToggleStatus={toggleStatus}
+              onUpdateStatus={updateStatus}
               onDelete={deleteRegistration}
             />
           )}

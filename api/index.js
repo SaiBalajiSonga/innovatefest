@@ -8,7 +8,7 @@ const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Supabase URL or Key missing in Vercel environment variables.');
+  console.error(' Supabase URL or Key missing in Vercel environment variables.');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -51,7 +51,7 @@ app.post('/api/register', async (req, res) => {
     if (!first_name || !email || !college || !year_of_study || !skills || !motivation) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    
+
     if (motivation.length < 50 || motivation.length > 500) {
       return res.status(400).json({ error: 'Motivation must be between 50 and 500 characters' });
     }
@@ -107,7 +107,7 @@ app.get('/api/registrations/:id', verifyAdmin, async (req, res) => {
 
     if (error) throw error;
     if (!data) return res.status(404).json({ error: 'Registration not found' });
-    
+
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error', details: error.message || error });
@@ -117,7 +117,7 @@ app.get('/api/registrations/:id', verifyAdmin, async (req, res) => {
 app.patch('/api/registrations/:id/status', verifyAdmin, async (req, res) => {
   try {
     const { status } = req.body;
-    if (!['pending', 'approved'].includes(status)) {
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
