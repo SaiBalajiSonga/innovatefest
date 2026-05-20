@@ -16,6 +16,7 @@ export default function Admin() {
   const [isLoading, setIsLoading]         = useState(true)
   const tableRef                          = useRef(null)
   const registrationsRef                  = useRef([])
+  const signingOutRef                     = useRef(false)
 
   useEffect(() => {
     registrationsRef.current = registrations
@@ -26,16 +27,20 @@ export default function Admin() {
       if (!session) {
         navigate('/admin/login')
       } else if (session.user?.app_metadata?.role !== 'admin') {
-        toast.error('Access denied: You are not authorized as an administrator.')
-        supabase.auth.signOut().then(() => {
-          navigate('/admin/login')
-        })
+        if (!signingOutRef.current) {
+          signingOutRef.current = true
+          toast.error('Access denied: You are not authorized as an administrator.')
+          supabase.auth.signOut().then(() => {
+            navigate('/admin/login')
+            signingOutRef.current = false
+          })
+        }
       }
     }
   }, [session, authLoading, navigate])
 
   useEffect(() => {
-    if (!session) return
+    if (!session || session.user?.app_metadata?.role !== 'admin') return
     const fetchRegistrations = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '/api';
@@ -57,7 +62,7 @@ export default function Admin() {
   }, [session])
 
   useEffect(() => {
-    if (!session) return
+    if (!session || session.user?.app_metadata?.role !== 'admin') return
     const channel = supabase
       .channel('admin-registrations')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, (payload) => {
