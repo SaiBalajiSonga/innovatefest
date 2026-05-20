@@ -140,7 +140,7 @@ app.get('/api/registrations/:id', verifyAdmin, async (req, res) => {
 app.patch('/api/registrations/:id/status', verifyAdmin, async (req, res) => {
   try {
     const { status } = req.body;
-    if (!['pending', 'approved'].includes(status)) {
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
 

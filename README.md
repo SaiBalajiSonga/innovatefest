@@ -77,7 +77,7 @@ CREATE TABLE registrations (
   year_of_study text NOT NULL,
   skills        text[] NOT NULL,
   motivation    text NOT NULL CHECK (char_length(motivation) <= 500),
-  status        text DEFAULT 'pending' CHECK (status IN ('pending', 'approved')),
+  status        text DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   submitted_at  timestamptz DEFAULT now()
 );
 
@@ -231,7 +231,7 @@ The backend is built with Express.js and is mounted at `/api`.
 
 - **`PATCH /api/registrations/:id/status`** (Requires Admin Auth)
   - **Description:** Updates the status of an application.
-  - **Body:** `{ status: 'approved' | 'pending' }`
+  - **Body:** `{ status: 'approved' | 'pending' | 'rejected' }`
 
 - **`DELETE /api/registrations/:id`** (Requires Admin Auth)
   - **Description:** Permanently deletes a registration.
