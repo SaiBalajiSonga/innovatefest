@@ -4,12 +4,6 @@
  * Edit this file to add/remove options — no component code changes needed.
  */
 
-// ── Degree / Program types ─────────────────────────────────────────────────
-export const DEGREE_PROGRAMS = [
-  'Undergraduate (UG)',
-  'Postgraduate (PG)',
-]
-
 
 // ── Indian colleges / Universities ─────────────────────────────────────────
 export const COLLEGES = [
@@ -136,18 +130,3 @@ export const COLLEGES = [
   'Indian Institute of Management Indore (IIM-I)',
 ]
 
-// ── Year of study options (Dynamic based on degree) ────────────────────────
-export function getYearsForDegree(degree) {
-  const d = (degree || '').toLowerCase()
-
-  if (d.includes('pg') || d.includes('postgraduate')) {
-    return ['1st Year', '2nd Year', '3rd Year']
-  }
-
-  if (d.includes('ug') || d.includes('undergraduate')) {
-    return ['1st Year', '2nd Year', '3rd Year', '4th Year']
-  }
-
-  // Default fallback
-  return ['1st Year', '2nd Year', '3rd Year', '4th Year']
-}
