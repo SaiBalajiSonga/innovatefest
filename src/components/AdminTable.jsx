@@ -238,7 +238,7 @@ function RegCard({ reg, isSelected, onClick, cardMode }) {
 
 // ── Detail View (right panel) ─────────────────────────────────────────────
 
-function DetailView({ reg, onUpdateStatus, onDelete }) {
+function DetailView({ reg, onUpdateStatus, onDelete, onClose }) {
   if (!reg) return (
     <div className="h-full flex flex-col items-center justify-center text-center px-8 select-none">
       <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center mb-4 text-text-muted text-lg">→</div>
@@ -258,11 +258,20 @@ function DetailView({ reg, onUpdateStatus, onDelete }) {
       {/* Header */}
       <div className="px-7 py-5 border-b border-white/[0.07] shrink-0">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h2 className="font-display font-bold text-[18px] text-text-primary leading-tight mb-0.5">{reg.full_name}</h2>
             <p className="text-[14px] text-indigo-300/80 font-mono">{reg.email}</p>
           </div>
-          <StatusBadge status={reg.status} size="lg" />
+          <div className="flex items-center gap-2.5 shrink-0">
+            <StatusBadge status={reg.status} size="lg" />
+            <button
+              onClick={onClose}
+              title="Close details"
+              className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.05] transition-colors"
+            >
+              <IconX />
+            </button>
+          </div>
         </div>
         <p className="text-[12px] font-mono text-text-muted mt-2.5">
           Registered · {formatDate(reg.submitted_at)} · {relativeTime(reg.submitted_at)}
@@ -605,7 +614,7 @@ const AdminTable = forwardRef(({ data, onUpdateStatus, onDelete }, ref) => {
                 <RegCard
                   key={reg.id} reg={reg}
                   isSelected={selected?.id === reg.id}
-                  onClick={() => setSelected(reg)}
+                  onClick={() => setSelected(selected?.id === reg.id ? null : reg)}
                   cardMode={cardMode}
                 />
               ))
@@ -622,7 +631,7 @@ const AdminTable = forwardRef(({ data, onUpdateStatus, onDelete }, ref) => {
 
       {/* ── RIGHT PANEL ─────────────────────────────────────── */}
       <div className="flex-1 min-w-0 overflow-hidden">
-        <DetailView reg={selected} onUpdateStatus={onUpdateStatus} onDelete={handleDelete} />
+        <DetailView reg={selected} onUpdateStatus={onUpdateStatus} onDelete={handleDelete} onClose={() => setSelected(null)} />
       </div>
     </div>
   )
