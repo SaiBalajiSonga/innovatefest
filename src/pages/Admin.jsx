@@ -15,6 +15,11 @@ export default function Admin() {
   const [registrations, setRegistrations] = useState([])
   const [isLoading, setIsLoading]         = useState(true)
   const tableRef                          = useRef(null)
+  const registrationsRef                  = useRef([])
+
+  useEffect(() => {
+    registrationsRef.current = registrations
+  }, [registrations])
 
   useEffect(() => {
     if (!authLoading && !session) navigate('/admin/login')
@@ -46,9 +51,28 @@ export default function Admin() {
     if (!session) return
     const channel = supabase
       .channel('admin-registrations')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'registrations' }, (payload) => {
-        setRegistrations(prev => [payload.new, ...prev])
-        toast('New registration', { icon: '📋' })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, (payload) => {
+        const currentList = registrationsRef.current
+        if (payload.eventType === 'INSERT') {
+          if (!currentList.some(r => r.id === payload.new.id)) {
+            setRegistrations(prev => [payload.new, ...prev])
+            toast(`New registration: ${payload.new.full_name}`, { icon: '📋' })
+          }
+        } else if (payload.eventType === 'UPDATE') {
+          const existing = currentList.find(r => r.id === payload.new.id)
+          if (existing) {
+            if (existing.status !== payload.new.status) {
+              toast(`"${payload.new.full_name}" is now ${payload.new.status}`, { icon: '🔄' })
+            }
+            setRegistrations(prev => prev.map(r => r.id === payload.new.id ? payload.new : r))
+          }
+        } else if (payload.eventType === 'DELETE') {
+          const existing = currentList.find(r => r.id === payload.old.id)
+          if (existing) {
+            toast(`Registration for "${existing.full_name}" was deleted`, { icon: '🗑️' })
+            setRegistrations(prev => prev.filter(r => r.id !== payload.old.id))
+          }
+        }
       })
       .subscribe()
     return () => supabase.removeChannel(channel)

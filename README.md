@@ -23,7 +23,7 @@ A complete, production-ready hackathon registration portal with a public-facing 
 - **Authentication:** Supabase Auth (JWT)
   - *Why?* Built-in, secure, and seamlessly integrates with Row Level Security (RLS) policies.
 - **Realtime:** Supabase Realtime
-  - *Why?* Allows the admin dashboard to update instantly when a new registration is submitted.
+  - *Why?* Allows the admin dashboard to update instantly when a new registration is submitted. It is fully integrated with a robust ref-syncing system (`registrationsRef`) to support live, multi-tab sync across all events (`INSERT` for new submissions, `UPDATE` for admin status overrides, and `DELETE` for admin removals) with smart UX alerts, entirely preventing stale closures and state race conditions.
 
 ---
 
@@ -37,6 +37,7 @@ As per the project requirements, this application robustly handles edge cases, d
   - **Backend:** The serverless API strictly validates the incoming payload. If any required field is missing, it instantly returns a `400 Bad Request`. It also enforces a strict character limit check on the `motivation` field (must be between 50 and 500 characters).
 - **Security & Authorization (RLS):** Supabase Row-Level Security (RLS) is configured to allow anyone to `INSERT` a registration, but it strictly requires a verified `authenticated` admin JWT token to `SELECT`, `UPDATE`, or `DELETE` any records. This completely isolates user data and prevents any participant from querying other people's data.
 - **Admin Search & Sorting:** The dashboard securely fetches all registrations and implements comprehensive filtering (by name, college, skills) and sorting (by submission time) directly on the client side, fulfilling all dashboard management requirements.
+- **Real-Time Multi-Tab Synchronization:** The admin dashboard subscribes to all PostgreSQL mutations (`INSERT`, `UPDATE`, `DELETE`). If a status is changed or a registration is deleted in one browser tab (or by another administrator), all other open dashboards update instantly. The system employs a React `useRef` stale-closure bypass (`registrationsRef`) to maintain exact state synchronization and prevent state updater side-effects, while filtering out duplicate local toasts for the current user's active operations.
 
 ---
 
