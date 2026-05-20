@@ -108,10 +108,29 @@ export default function Admin() {
   const pending  = total - approved - rejected
 
   const METRICS = [
-    { label: 'Total', value: total },
-    { label: 'Approved', value: approved, highlight: true },
-    { label: 'Pending', value: pending },
-    { label: 'Rejected', value: rejected },
+    {
+      label: 'Total',
+      value: total,
+      style: 'bg-indigo-500/[0.08] border-indigo-500/20 text-indigo-300',
+    },
+    {
+      label: 'Approved',
+      value: approved,
+      style: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+      dotColor: 'bg-emerald-400',
+    },
+    {
+      label: 'Pending',
+      value: pending,
+      style: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+      dotColor: 'bg-amber-400 animate-pulse',
+    },
+    {
+      label: 'Rejected',
+      value: rejected,
+      style: 'bg-red-500/10 border-red-500/20 text-red-400',
+      dotColor: 'bg-red-400',
+    },
   ]
 
   return (
@@ -161,19 +180,18 @@ export default function Admin() {
 
           {/* Metric chips */}
           <div className="flex flex-wrap gap-3">
-            {METRICS.map(({ label, value, highlight }) => (
+            {METRICS.map(({ label, value, style, dotColor }) => (
               <div
                 key={label}
-                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-sm ${
-                  highlight
-                    ? 'bg-indigo-500/[0.08] border-indigo-500/20 text-indigo-300'
-                    : 'bg-white/[0.03] border-white/[0.07] text-text-secondary'
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border text-sm font-mono transition-all duration-200 hover:scale-[1.02] ${style}`}
               >
-                <span className="font-display font-bold text-base text-inherit leading-none">
+                {dotColor && (
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+                )}
+                <span className="font-display font-bold text-base leading-none">
                   {isLoading ? '—' : value}
                 </span>
-                <span className="text-[13px] font-mono opacity-70">{label}</span>
+                <span className="text-[13px] opacity-80">{label}</span>
               </div>
             ))}
           </div>

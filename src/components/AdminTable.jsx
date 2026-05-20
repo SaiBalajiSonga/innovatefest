@@ -546,20 +546,14 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
             </div>
           )}
 
-          {/* Stats + card mode toggle row */}
-          <div className="flex items-center gap-2 px-0.5">
-            <span className="text-[12px] font-mono text-text-muted">{total} total</span>
-            <span className="text-white/10">·</span>
-            <span className="text-[12px] font-mono text-emerald-500">{approved} ✓</span>
-            <span className="text-white/10">·</span>
-            <span className="text-[12px] font-mono text-amber-500">{pending} pending</span>
-            <span className="text-white/10">·</span>
-            <span className="text-[12px] font-mono text-red-400">{rejected} ✗</span>
-
-            <div className="ml-auto flex items-center gap-1">
+          {/* Filter actions & card view toggle */}
+          <div className="flex items-center justify-between px-0.5 pt-1">
+            <span className="text-[11px] font-mono text-text-muted">Display & Actions</span>
+            <div className="flex items-center gap-1.5">
               {/* Card view mode toggle */}
               <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
                 <button
+                  type="button"
                   onClick={() => setCardMode('compact')}
                   title="Compact cards"
                   className={`p-1.5 transition-colors ${
@@ -571,6 +565,7 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
                   <IconLayoutCompact />
                 </button>
                 <button
+                  type="button"
                   onClick={() => setCardMode('expanded')}
                   title="Detailed cards"
                   className={`p-1.5 transition-colors border-l border-white/[0.08] ${
@@ -583,11 +578,21 @@ export default function AdminTable({ data, onUpdateStatus, onDelete }) {
                 </button>
               </div>
 
-              <button onClick={exportCSV} title="Export CSV" className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.05] transition-colors">
+              <button
+                type="button"
+                onClick={exportCSV}
+                title="Export CSV"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/[0.05] transition-colors"
+              >
                 <IconDownload />
               </button>
               {anyActive && (
-                <button onClick={clearAllFilters} title="Clear all filters" className="p-1.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/[0.07] transition-colors">
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  title="Clear all filters"
+                  className="p-1.5 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/[0.07] transition-colors"
+                >
                   <IconX />
                 </button>
               )}
