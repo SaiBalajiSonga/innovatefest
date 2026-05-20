@@ -178,7 +178,7 @@ export default function Admin() {
                 Registrations
               </h1>
               <p className="text-[14px] text-text-muted font-mono">
-                InnovateFest 2026 · May 25–27
+                InnovateFest 2026 · May 29–31
               </p>
             </div>
             

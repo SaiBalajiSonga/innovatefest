@@ -19,18 +19,18 @@ const FEATURES = [
 ]
 
 const SCHEDULE = [
-  { date: 'May 1',  time: '12:00 AM', title: 'Registration Opens',        desc: 'Applications open on a rolling basis — spots are limited and fill fast.' },
-  { date: 'May 20', time: '11:59 PM', title: 'Registration Closes',       desc: 'Final deadline. Team formation window closes along with applications.' },
-  { date: 'May 25', time: '09:00 AM', title: 'Opening Ceremony',          desc: 'Keynotes, track reveals, sponsor intros — the energy starts here.' },
-  { date: 'May 25', time: '11:00 AM', title: 'Hacking Begins',            desc: '36-hour timer starts. Mentors are live, API credits are loaded.' },
-  { date: 'May 26', time: '11:00 PM', title: 'Submission Deadline',       desc: 'Push your code, submit your Devpost link. No extensions.' },
-  { date: 'May 27', time: '03:00 PM', title: 'Closing Ceremony & Prizes', desc: 'Top 10 demos, judge Q&A, winner announcements, and networking.' },
+  { date: 'May 15', time: '12:00 AM', title: 'Registration Opens',        desc: 'Applications open on a rolling basis — spots are limited and fill fast.' },
+  { date: 'May 28', time: '11:59 PM', title: 'Registration Closes',       desc: 'Final deadline. Team formation window closes along with applications.' },
+  { date: 'May 29', time: '09:00 AM', title: 'Opening Ceremony',          desc: 'Keynotes, track reveals, sponsor intros — the energy starts here.' },
+  { date: 'May 29', time: '11:00 AM', title: 'Hacking Begins',            desc: '36-hour timer starts. Mentors are live, API credits are loaded.' },
+  { date: 'May 30', time: '11:00 PM', title: 'Submission Deadline',       desc: 'Push your code, submit your Devpost link. No extensions.' },
+  { date: 'May 31', time: '03:00 PM', title: 'Closing Ceremony & Prizes', desc: 'Top 10 demos, judge Q&A, winner announcements, and networking.' },
 ]
 
 const FAQS = [
   { q: 'Who can participate?',         a: 'Any enrolled university or college student — undergrad or postgrad, any major. Solo or in teams of up to 4.' },
   { q: 'Is there a registration fee?', a: 'Zero. Meals, snacks, merch, and workspace are all covered for the full 36 hours.' },
-  { q: 'Do I need a team?',            a: 'No. Register solo and join our team-formation event on May 25th morning — most solo applicants end up on great teams.' },
+  { q: 'Do I need a team?',            a: 'No. Register solo and join our team-formation event on May 29th morning — most solo applicants end up on great teams.' },
   { q: "What if I'm new to coding?",   a: 'You are exactly who we want. Designers, domain experts, and first-time hackers are all valuable. Beginner workshops run all weekend.' },
 ]
 
@@ -54,7 +54,7 @@ function Hero() {
         <motion.div variants={fadeUp} custom={0}>
           <span className="inline-flex items-center gap-2 border border-white/[0.1] bg-white/[0.03] text-indigo-400 text-[11px] font-mono tracking-[0.16em] uppercase px-4 py-1.5 rounded-full mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse-slow" />
-            InnovateFest 2026 · May 25–27
+            InnovateFest 2026 · May 29–31
           </span>
         </motion.div>
 
@@ -162,7 +162,7 @@ function Timeline() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-40px' }} variants={stagger}
           className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {SCHEDULE.map(({ date, time, title, desc }, idx) => {
-            const isActive = idx === 2
+            const isActive = idx === 1
             return (
               <motion.div variants={fadeUp} custom={idx} key={title}
                 whileHover={{ scale: 1.012, borderColor: 'rgba(99,102,241,0.28)' }}

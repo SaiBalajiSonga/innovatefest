@@ -55,7 +55,7 @@ export default function Register() {
           </h1>
           <p className="text-[14px] text-text-secondary leading-relaxed">
             Free to attend. Registrations close{' '}
-            <span className="text-text-primary font-medium">May 20, 2026</span>.
+            <span className="text-text-primary font-medium">May 28, 2026</span>.
           </p>
         </motion.div>
 
